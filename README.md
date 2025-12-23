@@ -1,7 +1,7 @@
 ComfyUI-Modal-Client ☁️🚀
 Ejecuta ComfyUI localmente, procesa en la nube.
 
-Este proyecto es un "puente" (bridge) que conecta tu instalación local de ComfyUI con la plataforma de computación en la nube https://www.google.com/search?q=Modal.com. Te permite diseñar tus workflows cómodamente en tu PC y enviarlos a ejecutar en GPUs de alto rendimiento (T4, A10G, A100, H100), descargando los resultados automáticamente de vuelta a tu ordenador.
+Este proyecto es un "puente" (bridge) que conecta tu instalación local de ComfyUI con la plataforma de computación en la nube https://modal.com/. Te permite diseñar tus workflows cómodamente en tu PC y enviarlos a ejecutar en GPUs de alto rendimiento (T4, A10G, A100, H100), descargando los resultados automáticamente de vuelta a tu ordenador.
 
 ✨ Características Principales
 Interfaz Local, Potencia Nube: Usa tu ComfyUI de siempre. No necesitas configurar interfaces web remotas complejas.

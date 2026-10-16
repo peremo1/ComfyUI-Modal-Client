@@ -2,7 +2,7 @@
   "id": "6b0c3c1e-6a43-4d5e-9a57-c4a7c1a0c0de",
   "revision": 0,
   "last_node_id": 11,
-  "last_link_id": 10,
+  "last_link_id": 11,
   "nodes": [
     {
       "id": 1,
@@ -213,7 +213,9 @@
         {
           "name": "MASK",
           "type": "MASK",
-          "links": null,
+          "links": [
+            9
+          ],
           "slot_index": 1
         }
       ],
@@ -224,7 +226,7 @@
         "chroma_referencia_ejemplo.png",
         "image"
       ],
-      "title": "Imagen de referencia (solo modo img2img)",
+      "title": "Imagen de referencia (modos referencia e inpaint)",
       "color": "#553",
       "bgcolor": "#664"
     },
@@ -330,6 +332,12 @@
           "type": "CHROMA_LORAS",
           "link": 4,
           "shape": 7
+        },
+        {
+          "name": "mascara",
+          "type": "MASK",
+          "link": 9,
+          "shape": 7
         }
       ],
       "outputs": [
@@ -337,7 +345,7 @@
           "name": "imagen",
           "type": "IMAGE",
           "links": [
-            9
+            10
           ],
           "slot_index": 0
         },
@@ -345,7 +353,7 @@
           "name": "prompt_final",
           "type": "STRING",
           "links": [
-            10
+            11
           ],
           "slot_index": 1
         }
@@ -375,7 +383,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 9
+          "link": 10
         }
       ],
       "outputs": [],
@@ -406,7 +414,7 @@
       "title": "Guia rapida",
       "properties": {},
       "widgets_values": [
-        "## Como usarlo\n\n1. **BOTONES DE PROMPT** (azul): enciende lo que quieras ver. Escriben el ingles por ti.\n2. **PANEL DE CONTROL**: en *prompt* escribe solo lo extra (puede quedar vacio). Elige resolucion, semilla y escalado.\n3. **LoRAs**: enciende con el interruptor y ajusta la barra.\n4. Pulsa **Run**. Abajo a la derecha ves el *prompt final* en ingles.\n\n**Varias imagenes seguidas:** cambia el numero junto a **Run** (ej. 8).\n\n**Modelo:** en el nodo MODELO elige Chroma1-HD, UnCanny o GonzaLomo.\n- UnCanny: 30-40 pasos, CFG 3.5.\n- GonzaLomo: 8-14 pasos, CFG 1-1.3.\n\n**Modo rapido:** activa el LoRA *Flash* (pone CFG 1 y 12 pasos solo).\n"
+        "## Como usarlo\n\n1. **BOTONES DE PROMPT** (azul): enciende lo que quieras ver. Escriben el ingles por ti.\n2. **PANEL DE CONTROL**: en *prompt* escribe solo lo extra (puede quedar vacio). Elige resolucion, semilla y escalado.\n3. **LoRAs**: enciende con el interruptor y ajusta la barra.\n4. Pulsa **Run**. Abajo a la derecha ves el *prompt final* en ingles.\n\n**Varias imagenes seguidas:** cambia el numero junto a **Run** (ej. 8).\n\n**Modelo:** en el nodo MODELO elige Chroma1-HD, UnCanny o GonzaLomo.\n- UnCanny: 30-40 pasos, CFG 3.5.\n- GonzaLomo: 8-14 pasos, CFG 1-1.3.\n\n**Quitar o cambiar ropa:** modo *Inpaint*. Clic derecho en la imagen de referencia > *Open in MaskEditor*, pinta la ropa, guarda. fuerza_referencia 1.0.\n\n**Modo rapido:** activa el LoRA *Flash* (pone CFG 1 y 12 pasos solo).\n"
       ],
       "color": "#432",
       "bgcolor": "#653"
@@ -511,7 +519,7 @@
         {
           "name": "source",
           "type": "*",
-          "link": 10
+          "link": 11
         }
       ],
       "outputs": [
@@ -596,6 +604,14 @@
     ],
     [
       9,
+      5,
+      1,
+      7,
+      6,
+      "MASK"
+    ],
+    [
+      10,
       7,
       0,
       8,
@@ -603,7 +619,7 @@
       "IMAGE"
     ],
     [
-      10,
+      11,
       7,
       1,
       11,

@@ -6,10 +6,10 @@ Cada interruptor o menu anade una frase; si lo apagas, la frase desaparece.
 NADA = "-"
 
 SUJETOS = {
-    "SUJETO mujer desnuda": "a nude adult woman",
-    "SUJETO hombre desnudo": "a nude adult man",
-    "SUJETO futanari": "a nude adult futanari woman with a feminine body and breasts, and a penis with testicles instead of a vagina",
-    "SUJETO pareja (hombre y mujer)": "a nude adult couple, a man and a woman, together",
+    "SUJETO mujer desnuda": "a completely naked adult woman with no clothes on",
+    "SUJETO hombre desnudo": "a completely naked adult man with no clothes on, bare chest",
+    "SUJETO futanari": "a completely naked adult futanari woman with a feminine body and breasts, and a penis with testicles instead of a vagina",
+    "SUJETO pareja (hombre y mujer)": "a completely naked adult couple, a man and a woman, together, with no clothes on",
 }
 
 EDAD = {NADA: "", "20 a 29": "in their twenties", "30 a 39": "in their thirties",
@@ -69,7 +69,7 @@ PLANO = {NADA: "", "cuerpo entero": "full body shot", "medio cuerpo": "medium sh
          "primer plano": "close-up shot"}
 
 NEGATIVOS = {
-    "EVITAR ropa": "clothes, clothing, underwear",
+    "EVITAR ropa": "clothes, clothing, jacket, coat, shirt, pants, underwear",
     "EVITAR otras personas": "extra people, crowd, other people in the background",
     "EVITAR maquillaje fuerte": "heavy makeup",
     "EVITAR tatuajes": "tattoos",

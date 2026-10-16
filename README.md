@@ -53,7 +53,7 @@ Interruptores y menús en español que escriben el prompt en inglés por ti: suj
 ### 2. Panel de control (amarillo)
 | Ajuste | Qué hace |
 |---|---|
-| **modo** | *Texto a imagen*, *Imagen de referencia (img2img)* o *Editar la última imagen generada* (usa como referencia la última imagen de `output\\Chroma`, sin subir nada) |
+| **modo** | *Texto a imagen*, *Imagen de referencia (img2img)* o *Editar la última imagen generada* (usa como referencia la última imagen de `output\\Chroma`, sin subir nada) o *Inpaint* (redibuja solo la zona que pintes: clic derecho en la imagen de referencia → *Open in MaskEditor*; ideal para quitar o cambiar ropa, con fuerza 1,0) |
 | **prompt / negativo** | Texto libre que se suma a los botones. El negativo genérico de realismo ya viene escrito |
 | **resolucion** | Plantillas: retrato 2:3, 3:4 o 9:16; cuadrado; paisaje 3:2, 4:3 o 16:9; dos tamaños *Rápido* para pruebas; *Personalizado* |
 | **semilla** | `randomize` = una distinta cada vez; `fixed` = repetir |

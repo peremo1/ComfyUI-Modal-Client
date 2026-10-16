@@ -33,6 +33,8 @@ NINGUNO = "Ninguno"
 MODO_TEXTO = "Texto a imagen"
 MODO_REFERENCIA = "Imagen de referencia (img2img)"
 MODO_ULTIMA = "Editar la ultima imagen generada"
+MODO_INPAINT = "Inpaint: redibujar zona pintada"
+MODOS_REF = (MODO_REFERENCIA, MODO_ULTIMA, MODO_INPAINT)
 
 PERSONALIZADO = "Personalizado (usa ancho/alto)"
 RESOLUCIONES = {
@@ -72,8 +74,8 @@ class ChromaPanel:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "modo": ([MODO_TEXTO, MODO_REFERENCIA, MODO_ULTIMA], {"default": MODO_TEXTO,
-                          "tooltip": "Editar la ultima imagen generada: usa como referencia la ultima imagen de output/Chroma, sin subir nada."}),
+                "modo": ([MODO_TEXTO, MODO_REFERENCIA, MODO_ULTIMA, MODO_INPAINT], {"default": MODO_TEXTO,
+                          "tooltip": "Ultima imagen: usa la ultima de output/Chroma. Inpaint: pinta la zona en Load Image (clic derecho > Open in MaskEditor) y solo esa zona se redibuja."}),
                 "prompt": ("STRING", {"multiline": True, "default": "",
                                       "tooltip": "En ingles y en frases completas: sujeto, ropa, pose, lugar, luz, tipo de foto."}),
                 "negativo": ("STRING", {"multiline": True, "default": NEGATIVO_GENERICO}),
@@ -120,7 +122,8 @@ class ChromaPanel:
             prompt = " ".join(t for t in (etiquetas["positivo"], prompt.strip()) if t)
             negativo = ", ".join(t for t in (negativo.strip().rstrip("."), etiquetas["negativo"]) if t)
         return ({
-            "referencia": modo in (MODO_REFERENCIA, MODO_ULTIMA),
+            "referencia": modo in MODOS_REF,
+            "inpaint": modo == MODO_INPAINT,
             "ultima": modo == MODO_ULTIMA,
             "prompt": prompt,
             "negativo": negativo,
@@ -131,7 +134,7 @@ class ChromaPanel:
             "cfg": cfg,
             "sampler": sampler,
             "scheduler": scheduler,
-            "denoise": fuerza_referencia if modo in (MODO_REFERENCIA, MODO_ULTIMA) else 1.0,
+            "denoise": fuerza_referencia if modo in MODOS_REF else 1.0,
             "escalado": escalado,
             "fuerza_detalle": fuerza_detalle,
         },)
@@ -220,6 +223,7 @@ class ChromaMotor:
             "optional": {
                 "imagen_referencia": ("IMAGE",),
                 "info_loras": ("CHROMA_LORAS",),
+                "mascara": ("MASK", {"tooltip": "Zona pintada para el modo Inpaint (salida MASK de Load Image)."}),
             },
         }
 
@@ -270,7 +274,23 @@ class ChromaMotor:
             img = img.reshape(-1, img.shape[-3], img.shape[-2], img.shape[-1])
         return img
 
-    def generar(self, model, clip, vae, ajustes, upscaler, imagen_referencia=None, info_loras=None):
+    @staticmethod
+    def _medidas_referencia(imagen, ancho, alto):
+        """Mantiene la proporcion de la referencia con los megapixeles de la resolucion elegida."""
+        h, w = imagen.shape[1], imagen.shape[2]
+        escala = math.sqrt((ancho * alto) / float(w * h))
+        return _a_multiplo(w * escala), _a_multiplo(h * escala)
+
+    @staticmethod
+    def _preparar_mascara(mascara, ancho, alto, crecer=24, difuminar=24):
+        m = mascara.reshape(-1, 1, mascara.shape[-2], mascara.shape[-1])[:1].float()
+        m = torch.nn.functional.interpolate(m, size=(alto, ancho), mode="bilinear")
+        m = (m > 0.5).float()
+        m = torch.nn.functional.max_pool2d(m, 2 * crecer + 1, stride=1, padding=crecer)  # agranda el borde
+        m = torch.nn.functional.avg_pool2d(m, 2 * difuminar + 1, stride=1, padding=difuminar, count_include_pad=False)
+        return m.clamp(0, 1)
+
+    def generar(self, model, clip, vae, ajustes, upscaler, imagen_referencia=None, info_loras=None, mascara=None):
         a = dict(ajustes)
         if info_loras:
             if info_loras["palabras"]:
@@ -294,14 +314,24 @@ class ChromaMotor:
                 imagen_referencia = self._ultima_imagen()
             if imagen_referencia is None:
                 raise ValueError("Modo 'Imagen de referencia' pero no hay imagen conectada.")
+            a["ancho"], a["alto"] = self._medidas_referencia(imagen_referencia, a["ancho"], a["alto"])
             pix = self._redimensionar(imagen_referencia[:1], a["ancho"], a["alto"])
             latente = {"samples": vae.encode(pix)}
+            if a.get("inpaint"):
+                if mascara is None or float(mascara.max()) <= 0:
+                    raise ValueError("Modo Inpaint: pinta la zona a cambiar en Load Image (clic derecho > Open in MaskEditor).")
+                m = self._preparar_mascara(mascara, a["ancho"], a["alto"])
+                latente["noise_mask"] = m
         else:
             latente = self._latente_vacio(a["ancho"], a["alto"])
 
         latente = nodes.common_ksampler(model, a["semilla"], a["pasos"], a["cfg"], a["sampler"], a["scheduler"],
                                         positivo, negativo, latente, denoise=a["denoise"])[0]
         imagen = self._decodificar(vae, latente)
+        if a.get("inpaint"):
+            # fuera de la zona pintada se conserva la imagen original exacta
+            mm = m.movedim(1, -1).to(imagen)
+            imagen = pix.to(imagen) * (1 - mm) + imagen * mm
 
         if a["escalado"] == ESCALADO_NO:
             return (imagen, a["prompt"])

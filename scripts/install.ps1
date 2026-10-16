@@ -28,7 +28,9 @@ $Models = @(
     @{ Name = "t5xxl_fp8_e4m3fn_scaled.safetensors"; Dir = "text_encoders"; MinGB = 4.5
        Url  = "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn_scaled.safetensors" },
     @{ Name = "ae.safetensors"; Dir = "vae"; MinGB = 0.3
-       Url  = "https://huggingface.co/Comfy-Org/Lumina_Image_2.0_Repackaged/resolve/main/split_files/vae/ae.safetensors" }
+       Url  = "https://huggingface.co/Comfy-Org/Lumina_Image_2.0_Repackaged/resolve/main/split_files/vae/ae.safetensors" },
+    @{ Name = "4x_foolhardy_Remacri.safetensors"; Dir = "upscale_models"; MinGB = 0.05
+       Url  = "https://huggingface.co/martin-rizzo/ESRGAN-4x/resolve/main/4x_foolhardy_Remacri.safetensors" }
 )
 
 # ------------------------------------------------------------------ utilidades
@@ -158,7 +160,7 @@ if ($SinSage) {
 if ($SinModelos) {
     Step "Modelos: omitidos (-SinModelos)"
 } else {
-    Step "Modelos de Chroma1-HD (~14 GB en total)"
+    Step "Modelos de Chroma1-HD + upscaler (~14 GB en total)"
     foreach ($m in $Models) {
         $dir = Join-Path $Comfy "models\$($m.Dir)"
         New-Item $dir -ItemType Directory -Force | Out-Null
@@ -166,7 +168,16 @@ if ($SinModelos) {
     }
 }
 
-# ------------------------------------------------------------------ 7. workflows
+New-Item (Join-Path $Comfy "models\loras") -ItemType Directory -Force | Out-Null
+
+# ------------------------------------------------------------------ 7. nodos propios + workflows
+Step "Nodos del Panel Chroma"
+$nodeSrc = Join-Path $RepoDir "custom_nodes\ComfyUI-ChromaPanel"
+$nodeDst = Join-Path $Comfy "custom_nodes\ComfyUI-ChromaPanel"
+if (Test-Path $nodeDst) { Remove-Item $nodeDst -Recurse -Force }
+Copy-Item $nodeSrc $nodeDst -Recurse -Force
+Ok "instalados en ComfyUI\custom_nodes\ComfyUI-ChromaPanel"
+
 Step "Workflows"
 $wfDir = Join-Path $Comfy "user\default\workflows"
 New-Item $wfDir -ItemType Directory -Force | Out-Null
@@ -204,6 +215,7 @@ Write-Host ""
 Write-Host "==================================================================" -ForegroundColor Green
 Write-Host " LISTO. Abre 'ComfyUI Chroma' en el escritorio."                       -ForegroundColor Green
 Write-Host " En el navegador: panel izquierdo 'Workflows' ->"                      -ForegroundColor Green
+Write-Host "   Chroma_0_Panel              (RECOMENDADO: todo en un panel + LoRAs)" -ForegroundColor Green
 Write-Host "   Chroma_1_TextoAImagen       (texto a imagen)"                       -ForegroundColor Green
 Write-Host "   Chroma_2_ImagenReferencia   (imagen de referencia / img2img)"      -ForegroundColor Green
 Write-Host " SageAttention: $(if ($useSage) {'activado'} else {'desactivado'})"   -ForegroundColor Green

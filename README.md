@@ -13,7 +13,9 @@ Instalador de un clic que deja ComfyUI listo para generar imágenes con **Chroma
 | Modelo | `Chroma1-HD-fp8mixed.safetensors` (8,6 GB) | Versión fp8 oficial de Comfy-Org, cabe en 12 GB |
 | Codificador de texto | `t5xxl_fp8_e4m3fn_scaled.safetensors` (4,8 GB) | |
 | VAE | `ae.safetensors` (0,3 GB) | |
-| Workflows | `Chroma_1_TextoAImagen`, `Chroma_2_ImagenReferencia` | Basados en la plantilla oficial de Chroma de ComfyUI |
+| Panel Chroma (nodos propios) | `custom_nodes/ComfyUI-ChromaPanel` | Panel de control, 4 LoRAs y un motor con escalado |
+| Upscaler | `4x_foolhardy_Remacri.safetensors` (67 MB) | Para el escalado x2 / x1.5 |
+| Workflows | `Chroma_0_Panel` (recomendado), `Chroma_1_TextoAImagen`, `Chroma_2_ImagenReferencia` | Basados en la plantilla oficial de Chroma de ComfyUI |
 
 Necesitas unos **40 GB libres**. Instálalo en el SSD (C:), no en el disco HDD.
 
@@ -39,7 +41,25 @@ powershell -ExecutionPolicy Bypass -File scripts\install.ps1 -InstallDir "D:\IA"
 powershell -ExecutionPolicy Bypass -File scripts\install.ps1 -SinModelos                       # si ya tienes los modelos
 ```
 
-## Los dos modos
+## Workflow recomendado: `Chroma_0_Panel`
+
+Todo se controla desde un único **PANEL DE CONTROL** (el bloque amarillo):
+
+| Ajuste | Qué hace |
+|---|---|
+| **modo** | *Texto a imagen* o *Imagen de referencia (img2img)*, que usa la imagen cargada al lado |
+| **prompt / negativo** | El negativo ya viene con uno genérico para realismo |
+| **resolucion** | Plantillas: retrato 2:3, 3:4, 9:16, cuadrado, paisaje 3:2, 4:3, 16:9, dos tamaños *Rápido* para probar prompts y *Personalizado* (usa ancho y alto) |
+| **semilla** | `randomize` da una distinta en cada imagen; `fixed` repite la misma |
+| **pasos / cfg / sampler / scheduler** | Vienen con los valores oficiales de Chroma (26, 4, euler, beta) |
+| **fuerza_referencia** | Solo en modo referencia: cuánto cambia la imagen (0,3-0,9) |
+| **escalado** | *No*, *Rápido x2* (solo el upscaler, tarda segundos) o *Detallado x1.5* (upscaler más una segunda pasada que redibuja detalles, unos 2-3 min más) |
+
+**Varias imágenes seguidas:** cambia el número que está junto al botón **Run** (por ejemplo, 8) y pulsa Run. Las genera una tras otra, cada una con una semilla nueva si tienes `randomize`.
+
+**LoRAs:** el nodo *LoRAs (opcional)* tiene 4 huecos. Copia los `.safetensors` a `ComfyUI\models\loras`, pulsa **R** en ComfyUI para refrescar la lista y elígelos. Una fuerza de 0,6-1,0 es lo normal; con *Ninguno* el hueco queda desactivado. En Civitai, filtra por el modelo base **Chroma**. Los LoRAs de Flux funcionan solo a veces y los de SDXL o Pony no funcionan.
+
+## Workflows sencillos
 
 ### 1. `Chroma_1_TextoAImagen`: texto a imagen
 - Escribe el prompt en **inglés y en frases completas**. Chroma entiende descripciones largas: sujeto, ropa, pose, lugar, luz y tipo de foto.

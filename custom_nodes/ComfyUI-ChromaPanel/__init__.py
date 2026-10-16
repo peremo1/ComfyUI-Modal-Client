@@ -14,7 +14,9 @@ import logging
 import math
 import os
 
+import numpy as np
 import torch
+from PIL import Image
 
 import comfy.model_management
 import comfy.samplers
@@ -30,6 +32,7 @@ NINGUNO = "Ninguno"
 
 MODO_TEXTO = "Texto a imagen"
 MODO_REFERENCIA = "Imagen de referencia (img2img)"
+MODO_ULTIMA = "Editar la ultima imagen generada"
 
 PERSONALIZADO = "Personalizado (usa ancho/alto)"
 RESOLUCIONES = {
@@ -69,7 +72,8 @@ class ChromaPanel:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "modo": ([MODO_TEXTO, MODO_REFERENCIA], {"default": MODO_TEXTO}),
+                "modo": ([MODO_TEXTO, MODO_REFERENCIA, MODO_ULTIMA], {"default": MODO_TEXTO,
+                          "tooltip": "Editar la ultima imagen generada: usa como referencia la ultima imagen de output/Chroma, sin subir nada."}),
                 "prompt": ("STRING", {"multiline": True, "default": "",
                                       "tooltip": "En ingles y en frases completas: sujeto, ropa, pose, lugar, luz, tipo de foto."}),
                 "negativo": ("STRING", {"multiline": True, "default": NEGATIVO_GENERICO}),
@@ -87,7 +91,7 @@ class ChromaPanel:
                 "sampler": (comfy.samplers.KSampler.SAMPLERS, {"default": "euler"}),
                 "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "beta"}),
                 "fuerza_referencia": ("FLOAT", {"default": 0.65, "min": 0.05, "max": 1.0, "step": 0.01,
-                                                "tooltip": "Solo en modo referencia. 0.3-0.45 retoque, 0.55-0.7 cambia ropa/estilo, 0.75-0.9 solo guia."}),
+                                                "tooltip": "Solo en modos de referencia. 0.3-0.45 retoque, 0.55-0.7 cambia estilo/detalles, 0.75-0.9 cambia ropa o la quita (mantiene pose)."}),
                 "escalado": ([ESCALADO_NO, ESCALADO_RAPIDO, ESCALADO_DETALLE], {"default": ESCALADO_NO}),
                 "fuerza_detalle": ("FLOAT", {"default": 0.35, "min": 0.1, "max": 0.7, "step": 0.01,
                                              "tooltip": "Solo en 'Detallado': cuanto redibuja la 2a pasada. 0.3-0.4 recomendado."}),
@@ -103,6 +107,11 @@ class ChromaPanel:
     CATEGORY = "Chroma"
     DESCRIPTION = "Todos los ajustes de Chroma en un solo lugar. Conectalo al Motor Chroma."
 
+    @classmethod
+    def IS_CHANGED(cls, modo, **kw):
+        # en "ultima imagen" hay que volver a mirar la carpeta en cada ejecucion
+        return float("nan") if modo == MODO_ULTIMA else ""
+
     def armar(self, modo, prompt, negativo, resolucion, ancho, alto, semilla, pasos, cfg, sampler, scheduler,
               fuerza_referencia, escalado, fuerza_detalle, etiquetas=None):
         if resolucion in RESOLUCIONES:
@@ -111,7 +120,8 @@ class ChromaPanel:
             prompt = " ".join(t for t in (etiquetas["positivo"], prompt.strip()) if t)
             negativo = ", ".join(t for t in (negativo.strip().rstrip("."), etiquetas["negativo"]) if t)
         return ({
-            "referencia": modo == MODO_REFERENCIA,
+            "referencia": modo in (MODO_REFERENCIA, MODO_ULTIMA),
+            "ultima": modo == MODO_ULTIMA,
             "prompt": prompt,
             "negativo": negativo,
             "ancho": _a_multiplo(ancho),
@@ -121,7 +131,7 @@ class ChromaPanel:
             "cfg": cfg,
             "sampler": sampler,
             "scheduler": scheduler,
-            "denoise": fuerza_referencia if modo == MODO_REFERENCIA else 1.0,
+            "denoise": fuerza_referencia if modo in (MODO_REFERENCIA, MODO_ULTIMA) else 1.0,
             "escalado": escalado,
             "fuerza_detalle": fuerza_detalle,
         },)
@@ -241,6 +251,19 @@ class ChromaMotor:
         return s.movedim(1, -1)
 
     @staticmethod
+    def _ultima_imagen():
+        carpeta = os.path.join(folder_paths.get_output_directory(), "Chroma")
+        archivos = [os.path.join(carpeta, f) for f in os.listdir(carpeta)
+                    if f.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))] if os.path.isdir(carpeta) else []
+        if not archivos:
+            raise ValueError("Todavia no hay imagenes en output/Chroma. Genera una primero en 'Texto a imagen'.")
+        ruta = max(archivos, key=os.path.getmtime)
+        logging.info("[Chroma] Referencia = ultima imagen: %s", ruta)
+        with Image.open(ruta) as im:
+            arr = np.asarray(im.convert("RGB"), dtype=np.float32) / 255.0
+        return torch.from_numpy(arr)[None]
+
+    @staticmethod
     def _decodificar(vae, latente):
         img = vae.decode(latente["samples"])
         if len(img.shape) == 5:
@@ -267,6 +290,8 @@ class ChromaMotor:
         negativo = self._codificar(clip, a["negativo"])
 
         if a["referencia"]:
+            if a.get("ultima"):
+                imagen_referencia = self._ultima_imagen()
             if imagen_referencia is None:
                 raise ValueError("Modo 'Imagen de referencia' pero no hay imagen conectada.")
             pix = self._redimensionar(imagen_referencia[:1], a["ancho"], a["alto"])

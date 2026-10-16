@@ -1,146 +1,75 @@
-ComfyUI-Modal-Client ☁️🚀
-Ejecuta ComfyUI localmente, procesa en la nube.
+# ComfyUI + Chroma1-HD: instalador local para Windows
 
-Este proyecto es un "puente" (bridge) que conecta tu instalación local de ComfyUI con la plataforma de computación en la nube https://modal.com/. Te permite diseñar tus workflows cómodamente en tu PC y enviarlos a ejecutar en GPUs de alto rendimiento (T4, A10G, A100, H100), descargando los resultados automáticamente de vuelta a tu ordenador.
+Instalador de un clic que deja ComfyUI listo para generar imágenes con **Chroma1-HD** en tu propia PC, pensado para una **RTX 3060 de 12 GB** con 32 GB de RAM. No usa la nube, así que no hay arranque en frío: el modelo se carga una sola vez y después cada imagen sale directo.
 
-✨ Características Principales
-Interfaz Local, Potencia Nube: Usa tu ComfyUI de siempre. No necesitas configurar interfaces web remotas complejas.
+## Qué instala
 
-Soporte Multi-GPU: Selecciona dinámicamente entre GPUs económicas (T4) o bestias de rendimiento (H100) desde un panel en ComfyUI.
+| Componente | Versión / archivo | Notas |
+|---|---|---|
+| ComfyUI portable (NVIDIA) | **v0.41.1** | Incluye Python 3.13 y PyTorch cu130 |
+| ComfyUI-Manager | el que fija esa versión (`manager_requirements.txt`) | Se activa con `--enable-manager` |
+| Visual C++ Redistributable | 2015-2022 x64 | Solo si te falta o está desactualizado |
+| Triton + SageAttention | `triton-windows` según tu PyTorch + `sageattention==1.0.6` | Optimizador **opcional**. El instalador lo prueba en tu GPU y solo lo activa si funciona |
+| Modelo | `Chroma1-HD-fp8mixed.safetensors` (8,6 GB) | Versión fp8 oficial de Comfy-Org, cabe en 12 GB |
+| Codificador de texto | `t5xxl_fp8_e4m3fn_scaled.safetensors` (4,8 GB) | |
+| VAE | `ae.safetensors` (0,3 GB) | |
+| Workflows | `Chroma_1_TextoAImagen`, `Chroma_2_ImagenReferencia` | Basados en la plantilla oficial de Chroma de ComfyUI |
 
-Gestión de Modelos: Descarga modelos desde HuggingFace directamente al almacenamiento persistente de Modal con un solo clic.
+Necesitas unos **40 GB libres**. Instálalo en el SSD (C:), no en el disco HDD.
 
-Sincronización Automática: Las imágenes generadas se descargan automáticamente a tu carpeta de salida local.
+## Requisitos
 
-Estimación de Costos: Visualiza el costo aproximado por hora de la GPU seleccionada.
+- Windows 10/11 de 64 bits y una GPU NVIDIA.
+- **Driver NVIDIA 580 o superior**, porque el PyTorch del portable usa CUDA 13. Si tu driver es más antiguo, el instalador se detiene y te avisa.
 
-🛠️ Requisitos Previos
-Tener ComfyUI instalado localmente.
+## Instalación
 
-Una cuenta en Modal.com.
+1. Descarga este repo (*Code → Download ZIP*) y descomprímelo.
+2. Haz doble clic en **`INSTALAR.bat`**.
+   - Por defecto instala en `C:\IA`. Para usar otra carpeta, ejecuta `INSTALAR.bat D:\IA` desde una consola.
+   - Windows te pedirá permiso de administrador solo si tiene que instalar Visual C++.
+3. Espera a que termine. Se descargan unos 20 GB; si se corta, vuelve a ejecutarlo y continúa donde quedó.
+4. Abre **"ComfyUI Chroma"** desde el escritorio. Se abre el navegador en `http://127.0.0.1:8188`.
+5. En el panel izquierdo, abre **Workflows** y elige uno de los dos.
 
-Una cuenta en HuggingFace (para descargar modelos).
+Opciones avanzadas (ejecútalas desde PowerShell en la carpeta del repo):
 
-Python instalado en tu sistema.
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\install.ps1 -InstallDir "D:\IA" -SinSage      # sin optimizador
+powershell -ExecutionPolicy Bypass -File scripts\install.ps1 -SinModelos                       # si ya tienes los modelos
+```
 
-⚙️ Configuración de Secretos (Importante)
-Para que el sistema pueda descargar modelos protegidos o públicos desde HuggingFace dentro de los servidores de Modal, necesitas configurar un Token.
+## Los dos modos
 
-Paso 1: Obtener Token de HuggingFace
-Ve a HuggingFace Settings > Tokens.
+### 1. `Chroma_1_TextoAImagen`: texto a imagen
+- Escribe el prompt en **inglés y en frases completas**. Chroma entiende descripciones largas: sujeto, ropa, pose, lugar, luz y tipo de foto.
+- CFG entre 3,5 y 4,5, unos 26 pasos, sampler `euler` con scheduler `beta`.
+- Tamaños: 1024×1024, 832×1216 (vertical) o 1216×832 (horizontal).
 
-Haz clic en "Create new token".
+### 2. `Chroma_2_ImagenReferencia`: imagen de referencia / img2img
+- Sube tu imagen en **Load Image**. Se reescala sola a unos 1 MP.
+- El **denoise** del nodo `BasicScheduler` decide cuánto cambia la imagen:
+  - **0,30-0,45**: retoque leve, mantiene la pose y la composición.
+  - **0,55-0,70**: mantiene la composición y cambia ropa, estilo o detalles. Es el valor recomendado.
+  - **0,75-0,90**: la referencia solo sirve como guía de colores y formas.
 
-Tipo: Read.
+Las imágenes se guardan en `C:\IA\ComfyUI_windows_portable\ComfyUI\output\Chroma\`.
 
-Nombre: HF_TOKEN.
+## Rendimiento esperado (RTX 3060 12 GB)
 
-Copia el token generado (empieza por hf_...).
+- La primera imagen tarda más porque carga el modelo desde el disco.
+- Después, unos **60-120 s** por imagen a 1024×1024 con 26 pasos.
+- Si te quedas sin memoria (OOM), baja la resolución o cierra programas que usen la GPU, como el navegador con vídeos o los juegos.
 
-Paso 2: Configurar Secreto en Modal
-Ve a tu panel de Modal: Modal Secrets.
+## Problemas comunes
 
-Haz clic en "Create new secret".
+| Síntoma | Solución |
+|---|---|
+| `c10.dll` o un error al iniciar | Instala [VC++ Redist](https://aka.ms/vs/17/release/vc_redist.x64.exe) y actualiza el driver NVIDIA |
+| "driver NVIDIA ... necesita 580" | Actualiza el driver desde nvidia.com o la app de NVIDIA |
+| Se cortó una descarga | Vuelve a ejecutar `INSTALAR.bat`; reanuda la descarga |
+| Errores con SageAttention | Edita `C:\IA\INICIAR_ComfyUI_Chroma.bat` y quita `--use-sage-attention` |
 
-Selecciona "Custom".
+## Uso responsable
 
-Configura los siguientes campos:
-
-Key: HF_TOKEN
-
-Value: (Pega aquí tu token de HuggingFace)
-
-Nombra el secreto (Name) también como HF_TOKEN y guarda.
-
-📥 Instalación
-Clonar el repositorio: Ve a la carpeta custom_nodes de tu instalación de ComfyUI y clona este repo:
-
-Bash
-
-cd ComfyUI/custom_nodes/
-git clone https://github.com/peremo1/ComfyUI-Modal-Client.git
-Instalar dependencias de Python (Lado Cliente): Necesitas instalar las librerías para el puente local.
-
-Bash
-
-pip install modal flask flask-cors requests
-Autenticar Modal en tu PC: Si es la primera vez que usas Modal:
-
-Bash
-
-modal setup
-🚀 Uso
-El sistema consta de dos partes: el servidor en la nube (Modal) y el puente local (Flask).
-
-1. Desplegar/Subir el código a Modal
-Primero, asegúrate de que el código del servidor (modal_downloader.py) esté disponible en tu cuenta de Modal. Desde la carpeta del nodo:
-
-Bash
-
-modal deploy server/modal_downloader.py
-Esto creará la aplicación comfyui-model-downloader en tu cuenta de Modal.
-
-2. Iniciar el Puente Local
-Este script conecta tu ComfyUI con Modal. Debe estar corriendo siempre que quieras usar la extensión.
-
-Bash
-
-python server/comfyui_modal_bridge.py
-Verás un mensaje indicando que el servidor corre en http://127.0.0.1:5001.
-
-3. Usar en ComfyUI
-Abre ComfyUI en tu navegador.
-
-Verás un nuevo botón "GPU" en la barra lateral. Úsalo para seleccionar qué tarjeta gráfica quieres usar (T4, A10G, etc.).
-
-En el botón de "Queue Prompt" (Ejecutar), despliega el menú y selecciona "Ejecutar en Modal".
-
-¡Listo! El botón cambiará a azul. Al hacer clic, el workflow se enviará a la nube, se procesará y la imagen volverá a tu pantalla.
-
-📂 Arquitectura y Explicación del Código
-Para los curiosos, aquí explicamos cómo funciona cada componente del proyecto:
-
-☁️ Backend (Modal)
-server/modal_downloader.py: Es el corazón del sistema en la nube.
-
-Define la imagen de Docker con todas las dependencias (PyTorch, ComfyUI, Drivers CUDA).
-
-Crea Volúmenes Persistentes: Uno para guardar modelos (/models) y otro para las salidas (/outputs), así no tienes que descargar los modelos cada vez.
-
-Funciones execute_workflow: Existen funciones específicas para cada tipo de GPU (T4, A100, etc.). Reciben el workflow en formato API JSON, levantan una instancia de ComfyUI "headless" (sin interfaz gráfica) dentro de Modal, ejecutan el trabajo y guardan la imagen.
-
-🌉 Bridge (Puente Local)
-server/comfyui_modal_bridge.py: Es un servidor Flask que corre en tu PC (puerto 5001).
-
-Actúa como intermediario. El Javascript del navegador no puede hablar directamente con Modal por seguridad/CORS fácilmente, así que este servidor recibe las peticiones del navegador y usa la librería de Python de modal para invocar las funciones en la nube.
-
-Maneja la descarga temporal de imágenes desde el volumen de Modal a tu disco duro local.
-
-💻 Frontend (JavaScript/ComfyUI)
-web/js/modal-execution.js:
-
-Intercepta el botón de "Queue Prompt".
-
-Envía el workflow al Bridge local.
-
-Muestra una barra de progreso en tiempo real.
-
-Cuando termina, inyecta las imágenes recibidas en el historial de ComfyUI.
-
-Añade botones en el diálogo de "Missing Models" para descargar modelos faltantes directamente a la nube.
-
-web/js/modal-gpu-selector.js:
-
-Añade el panel UI para elegir la GPU y ver precios estimados.
-
-🧩 Nodos Personalizados
-nodes/modal_register_output.py:
-
-Un nodo simple de Python que ayuda a cargar la imagen descargada desde Modal para que ComfyUI la reconozca como una imagen local y pueda ser guardada o previsualizada en el flujo normal.
-
-⚠️ Notas
-Asegúrate de vigilar tu consumo en el panel de Modal.
-
-La primera vez que ejecutas un modelo nuevo en la nube, puede tardar un poco más mientras descarga los checkpoints necesarios al volumen persistente.
-
-Desarrollado con ❤️ para la comunidad de ComfyUI.
+Usa solo personajes ficticios adultos o personas que te hayan dado su consentimiento. Generar imágenes sexuales de personas reales sin su consentimiento, o cualquier contenido sexual que involucre a menores, es ilegal.

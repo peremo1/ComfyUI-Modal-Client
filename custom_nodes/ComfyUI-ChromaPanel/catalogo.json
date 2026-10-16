@@ -1,0 +1,270 @@
+{
+  "loras": [
+    {
+      "clave": "realismo_lenovo",
+      "etiqueta": "Realismo: Lenovo UltraReal",
+      "categoria": "realismo",
+      "archivo": "chroma_pack/lenovo_ultrareal.safetensors",
+      "fuerza": 0.8,
+      "min": -1.0,
+      "max": 2.0,
+      "palabras": "l3n0v0",
+      "activo": true,
+      "nota": "Foto real tipo movil/amateur. El LoRA de realismo mas popular.",
+      "fuente": "https://civitai.com/models/1662740?modelVersionId=2299345",
+      "sha256": "df934b1a366206daa3b5dcfef7c84efd9e75ca19d00867d7fe24fa2bb233fdc9",
+      "mb": 107,
+      "urls": [
+        "https://huggingface.co/Danrisi/Lenovo_UltraReal_Chroma/resolve/main/lenovo_chroma.safetensors",
+        "https://huggingface.co/Sentinel7/z-image/resolve/main/1662740/2299345/lenovo_chroma.safetensors",
+        "https://huggingface.co/munik9/firegirl/resolve/main/lenovo_chroma.safetensors",
+        "https://civitai.com/api/download/models/2299345"
+      ]
+    },
+    {
+      "clave": "realismo_goontune",
+      "etiqueta": "Realismo NSFW: GOONTUNE",
+      "categoria": "realismo",
+      "archivo": "chroma_pack/goontune.safetensors",
+      "fuerza": 0.7,
+      "min": -1.0,
+      "max": 2.0,
+      "palabras": "",
+      "activo": false,
+      "nota": "Realismo enfocado en contenido adulto.",
+      "fuente": "https://civitai.com/models/1959747?modelVersionId=2251525",
+      "sha256": "e425e683d686cde5f90e79c9cb4282a54d97ff4fb9435e521bf7b9691af9467f",
+      "mb": 517,
+      "urls": [
+        "https://huggingface.co/kxh12/eromify-models/resolve/main/loras/Chroma/1518goontunerank64prodigy.safetensors",
+        "https://huggingface.co/1234vlad/mirror/resolve/main/loras/chroma/1518goontunerank64prodigy.safetensors",
+        "https://civitai.com/api/download/models/2251525"
+      ]
+    },
+    {
+      "clave": "realismo_profesional",
+      "etiqueta": "Foto profesional",
+      "categoria": "realismo",
+      "archivo": "chroma_pack/professional_photos.safetensors",
+      "fuerza": 0.6,
+      "min": -1.0,
+      "max": 2.0,
+      "palabras": "",
+      "activo": false,
+      "nota": "Calidad de sesion de fotos profesional.",
+      "fuente": "https://civitai.com/models/1908534?modelVersionId=2550883",
+      "sha256": "42c46f6647376828734b3da4fcc74f3577103dd1376a29e4f36d1184ad9b6a59",
+      "mb": 428,
+      "urls": [
+        "https://huggingface.co/1234vlad/mirror/resolve/main/loras/chroma/ChromaProfessionalPhotos_v4.0.safetensors",
+        "https://huggingface.co/Dirys/imageloras/resolve/main/chroma_professional_photo.safetensors",
+        "https://civitai.com/api/download/models/2550883"
+      ]
+    },
+    {
+      "clave": "realismo_nsfw",
+      "etiqueta": "Realismo NSFW: escenas",
+      "categoria": "realismo",
+      "archivo": "chroma_pack/nsfw_realism.safetensors",
+      "fuerza": 0.7,
+      "min": -1.0,
+      "max": 2.0,
+      "palabras": "",
+      "activo": false,
+      "nota": "Facials, deepthroat, buttshot, handjob, squirting. Mejor con prompts como sus ejemplos.",
+      "fuente": "https://civitai.com/models/1972809?modelVersionId=2357084",
+      "sha256": "23827806e0016c2e3ae85a3d7cdddb7fe6baa5729e6fef68ba3f4379274ff630",
+      "mb": 1026,
+      "urls": [
+        "https://huggingface.co/RomixERR/Chroma_HD_v1.0_bf16/resolve/main/LORAS/realism3.safetensors",
+        "https://huggingface.co/1234vlad/mirror/resolve/main/loras/chroma/realism3.safetensors",
+        "https://civitai.com/api/download/models/2357084"
+      ]
+    },
+    {
+      "clave": "pene_tamano",
+      "etiqueta": "Tamano de pene (slider -2 a +2)",
+      "categoria": "anatomia",
+      "archivo": "chroma_pack/penis_size_slider.safetensors",
+      "fuerza": 0.0,
+      "min": -3.0,
+      "max": 3.0,
+      "palabras": "",
+      "activo": false,
+      "nota": "Negativo = mas pequeno, positivo = mas grande. Rango recomendado -2 a 2.",
+      "fuente": "https://civitai.com/models/1983464?modelVersionId=2245199",
+      "sha256": "d08000ca0ad5e3874a2281ff3f9a01383adf8c0f15d0b2ee9c945dbe8542783f",
+      "mb": 13,
+      "urls": [
+        "https://huggingface.co/ajeastellis/ComfyUI/resolve/main/loras/CHROMA/penis_size_slider_chroma_v1.safetensors",
+        "https://huggingface.co/1234vlad/mirror/resolve/main/loras/chroma/penis_size_slider_chroma_v1.safetensors",
+        "https://huggingface.co/benlewis999/loras/resolve/main/penis_size_slider%20for%20size_chroma_v1.safetensors",
+        "https://civitai.com/api/download/models/2245199"
+      ]
+    },
+    {
+      "clave": "pene_detalle",
+      "etiqueta": "Detalle de pene (COCKTASTIC, en pruebas)",
+      "categoria": "anatomia",
+      "archivo": "chroma_pack/cocktastic_v2e.safetensors",
+      "fuerza": 0.7,
+      "min": -1.0,
+      "max": 2.0,
+      "palabras": "",
+      "activo": false,
+      "nota": "Version de prueba del autor. Solo Civitai.",
+      "fuente": "https://civitai.com/models/2407403?modelVersionId=2755515",
+      "sha256": "de6d32cf93a970f3a0b910659896cff6195b30e2720d29ac2e9de68fe1c6d56c",
+      "mb": 215,
+      "urls": [
+        "https://civitai.com/api/download/models/2755515"
+      ]
+    },
+    {
+      "clave": "pezones_erectos",
+      "etiqueta": "Pezones erectos",
+      "categoria": "anatomia",
+      "archivo": "chroma_pack/nipples_erect.safetensors",
+      "fuerza": 0.8,
+      "min": -1.0,
+      "max": 2.0,
+      "palabras": "erect nipples",
+      "activo": false,
+      "nota": "",
+      "fuente": "https://civitai.com/models/2397179?modelVersionId=2695415",
+      "sha256": "f1505dda4b2dc8ea0fe736f8a12701e96909fb612a98a168acf243038ffba3ea",
+      "mb": 214,
+      "urls": [
+        "https://huggingface.co/1234vlad/mirror/resolve/main/loras/chroma/Erect_nipples.safetensors",
+        "https://civitai.com/api/download/models/2695415"
+      ]
+    },
+    {
+      "clave": "areolas_grandes",
+      "etiqueta": "Areolas grandes",
+      "categoria": "anatomia",
+      "archivo": "chroma_pack/nipples_big_areolas.safetensors",
+      "fuerza": 0.8,
+      "min": -1.0,
+      "max": 2.0,
+      "palabras": "big areolas nipples",
+      "activo": false,
+      "nota": "",
+      "fuente": "https://civitai.com/models/2397179?modelVersionId=2695596",
+      "sha256": "e8fb2a151d7506676755ea02a0441f6bf692e75f38ad2fdb89b4cd14e3edd6ef",
+      "mb": 214,
+      "urls": [
+        "https://huggingface.co/1234vlad/mirror/resolve/main/loras/chroma/Wide_nipples-000003.safetensors",
+        "https://civitai.com/api/download/models/2695596"
+      ]
+    },
+    {
+      "clave": "vulva_innie",
+      "etiqueta": "Vulva cerrada (innie)",
+      "categoria": "anatomia",
+      "archivo": "chroma_pack/innie_pussy_chroma.safetensors",
+      "fuerza": 0.8,
+      "min": -1.0,
+      "max": 2.0,
+      "palabras": "cleft of venus",
+      "activo": false,
+      "nota": "",
+      "fuente": "https://civitai.com/models/112299?modelVersionId=2736275",
+      "sha256": "7f68f2e600132829fb1c1f9e6570bed39b289ec8c04775867aa1a551b96dc2fd",
+      "mb": 214,
+      "urls": [
+        "https://huggingface.co/1234vlad/mirror/resolve/main/loras/chroma/m99_labiaplasty_pussy_5_chroma.safetensors",
+        "https://civitai.com/api/download/models/2736275"
+      ]
+    },
+    {
+      "clave": "acto_deepthroat",
+      "etiqueta": "Deepthroat",
+      "categoria": "actos",
+      "archivo": "chroma_pack/deepthroat.safetensors",
+      "fuerza": 0.8,
+      "min": -1.0,
+      "max": 2.0,
+      "palabras": "dprthrt",
+      "activo": false,
+      "nota": "Solo Civitai.",
+      "fuente": "https://civitai.com/models/2055796?modelVersionId=2326477",
+      "sha256": "b2e97eeb25e2a1e6f36da6d0448288e5da87ed88ab4f023ea481b85704726112",
+      "mb": 20,
+      "urls": [
+        "https://civitai.com/api/download/models/2326477"
+      ]
+    },
+    {
+      "clave": "futa_flux",
+      "etiqueta": "Futanari (LoRA de Flux, experimental)",
+      "categoria": "actos",
+      "archivo": "chroma_pack/futanari_flux.safetensors",
+      "fuerza": 0.7,
+      "min": -1.0,
+      "max": 2.0,
+      "palabras": "futanari girl got a penis",
+      "activo": false,
+      "nota": "Hecho para Flux, no para Chroma: puede funcionar a medias. Tiende a rasgos asiaticos. Solo Civitai.",
+      "fuente": "https://civitai.com/models/653203?modelVersionId=880875",
+      "sha256": "681866eea67a70c8b589708b93031804bd186080baff35c1612f0162a5782500",
+      "mb": 18,
+      "urls": [
+        "https://civitai.com/api/download/models/880875"
+      ]
+    },
+    {
+      "clave": "velocidad_flash",
+      "etiqueta": "MODO RAPIDO (Flash: 12 pasos, CFG 1)",
+      "categoria": "velocidad",
+      "archivo": "chroma_pack/flash_heun_r32.safetensors",
+      "fuerza": 1.0,
+      "min": 0.0,
+      "max": 2.0,
+      "palabras": "",
+      "activo": false,
+      "nota": "2-3x mas rapido. Pone CFG 1 y 12 pasos solos; el negativo deja de funcionar.",
+      "fuente": "https://civitai.com/models/2032955?modelVersionId=2300935",
+      "sha256": "8872bc87f477863c242d19ac1353bdf524db5d7df1f29da1091978194d3162c4",
+      "mb": 429,
+      "urls": [
+        "https://huggingface.co/silveroxides/Chroma-LoRAs/resolve/main/flash-heun/chroma-flash-heun_r32-fp32.safetensors",
+        "https://huggingface.co/silveroxides/Chroma-LoRAs/resolve/main/flash-heun/chroma-unlocked-v47-flash-heun-8steps-cfg1_r32-fp32.safetensors",
+        "https://huggingface.co/Quiho/best-from-civitai/resolve/main/chroma-flash-heun_r32-fp32.safetensors",
+        "https://civitai.com/api/download/models/2300935"
+      ]
+    }
+  ],
+  "modelos_extra": [
+    {
+      "clave": "uncanny",
+      "etiqueta": "UnCanny v1.3 (fotorrealismo)",
+      "archivo": "uncanny_photorealism_v13_fp8.safetensors",
+      "nota": "30-40 pasos, CFG 3.5, scheduler beta.",
+      "fuente": "https://civitai.com/models/2086389?modelVersionId=2517681",
+      "sha256": "599ab6222173a4f552b5dfa553caad00a43223abb18917ac45d4c08391b5a1ce",
+      "mb": 8490,
+      "urls": [
+        "https://huggingface.co/fairy322/UnCanny-Photorealism-Chroma-GGUF/resolve/main/UnCanny_v1.3_float8_e4m3fn_scaled_learned_svd.safetensors",
+        "https://huggingface.co/ajeastellis/ComfyUI/resolve/main/diffusion_models/uncannyPhotorealism_v13.safetensors",
+        "https://huggingface.co/cusiman/UnCanny-Photorealism-Chroma-GGUF/resolve/main/UnCanny_v1.3_float8_e4m3fn_scaled_learned_svd.safetensors",
+        "https://civitai.com/api/download/models/2517681"
+      ]
+    },
+    {
+      "clave": "gonzalomo",
+      "etiqueta": "GonzaLomo Chroma v3 (rapido)",
+      "archivo": "gonzalomo_chroma_v30_fp8.safetensors",
+      "nota": "8-14 pasos, CFG 1-1.3, euler o dpmpp_2m, scheduler simple o beta.",
+      "fuente": "https://civitai.com/models/2182526?modelVersionId=2627397",
+      "sha256": "1545b9f667c15dd10a584bc60a27fc160aa0e990236127ec16ab1f5467439658",
+      "mb": 8488,
+      "urls": [
+        "https://huggingface.co/Dervlex/Private/resolve/main/gonzalomoChroma_v30.safetensors",
+        "https://huggingface.co/gbrx/GonzaLomo/resolve/main/gonzalomoChroma_v30_UNET_FP8.safetensors",
+        "https://huggingface.co/russjr08/model_storage/resolve/main/models/diffusion_models/gonzalomoChroma_v30_fp8.safetensors",
+        "https://civitai.com/api/download/models/2627397"
+      ]
+    }
+  ]
+}

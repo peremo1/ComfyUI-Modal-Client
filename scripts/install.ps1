@@ -7,7 +7,8 @@
 param(
     [string]$InstallDir = "C:\IA",
     [switch]$SinSage,      # no instalar SageAttention / Triton
-    [switch]$SinModelos    # no descargar los modelos (si ya los tienes)
+    [switch]$SinModelos,   # no descargar los modelos (si ya los tienes)
+    [switch]$SinLoras      # no descargar el pack de LoRAs
 )
 
 $ErrorActionPreference = "Stop"
@@ -61,6 +62,33 @@ function Get-File($url, $dest, [double]$minGB = 0) {
     Move-Item $part $dest
     New-Item "$dest.ok" -ItemType File -Force | Out-Null
     Ok "$(Split-Path -Leaf $dest) ($([math]::Round($sizeGB * 1024)) MB)"
+}
+
+# Descarga probando varias copias (Hugging Face primero, Civitai al final) y verifica el SHA256.
+function Get-Verified($urls, $dest, $sha, $token) {
+    $name = Split-Path -Leaf $dest
+    if (Test-Path "$dest.ok") { Ok "ya descargado: $name"; return $true }
+    New-Item (Split-Path -Parent $dest) -ItemType Directory -Force | Out-Null
+    $part = "$dest.part"
+    foreach ($u in $urls) {
+        $url = $u
+        if ($u -like "https://civitai.com/*") {
+            if (-not $token) { continue }
+            $sep = "?"; if ($u.Contains("?")) { $sep = "&" }
+            $url = "$u$($sep)token=$token"
+        }
+        Write-Host "    descargando $name desde $(([uri]$u).Host) ..."
+        & curl.exe -L --fail --retry 3 --retry-delay 5 -C - -o $part $url
+        if ($LASTEXITCODE -ne 0) { Warn "esa copia fallo (codigo $LASTEXITCODE), probando otra"; continue }
+        $hash = (Get-FileHash $part -Algorithm SHA256).Hash.ToLower()
+        if ($hash -ne $sha) { Remove-Item $part -Force; Warn "la copia no coincide con el original (SHA256), probando otra"; continue }
+        if (Test-Path $dest) { Remove-Item $dest -Force }
+        Move-Item $part $dest
+        New-Item "$dest.ok" -ItemType File -Force | Out-Null
+        Ok "$name verificado"
+        return $true
+    }
+    return $false
 }
 
 function Pip { & $Python -s -m pip --disable-pip-version-check @args | Out-Host; return $LASTEXITCODE }
@@ -169,6 +197,51 @@ if ($SinModelos) {
 }
 
 New-Item (Join-Path $Comfy "models\loras") -ItemType Directory -Force | Out-Null
+
+# ------------------------------------------------------------------ 6b. pack de LoRAs y modelos alternativos
+$catalog = Get-Content (Join-Path $RepoDir "custom_nodes\ComfyUI-ChromaPanel\catalogo.json") -Raw | ConvertFrom-Json
+$tokenFile = Join-Path $InstallDir "civitai_api_key.txt"
+$token = $null
+if (Test-Path $tokenFile) { $token = (Get-Content $tokenFile -Raw).Trim() }
+
+function Need-Token($entries) {
+    foreach ($e in $entries) {
+        $dest = Join-Path $Comfy "models\loras\$($e.archivo)"
+        $soloCivitai = @($e.urls | Where-Object { $_ -notlike "https://civitai.com/*" }).Count -eq 0
+        if ($soloCivitai -and -not (Test-Path "$dest.ok")) { return $true }
+    }
+    return $false
+}
+
+if ($SinLoras) {
+    Step "Pack de LoRAs: omitido (-SinLoras)"
+} else {
+    Step "Pack de LoRAs para Chroma (~3.4 GB, verificados con SHA256)"
+    if (-not $token -and (Need-Token $catalog.loras)) {
+        Write-Host "    Algunos LoRAs solo estan en Civitai, que pide cuenta para contenido adulto."
+        Write-Host "    Crea una API key en civitai.com -> Settings -> API Keys. Se guarda SOLO en este PC."
+        $token = (Read-Host "    Pega tu API key de Civitai (o pulsa Enter para saltar esos LoRAs)").Trim()
+        if ($token) { Set-Content -Path $tokenFile -Value $token -Encoding ASCII }
+    }
+    $faltan = @()
+    foreach ($e in $catalog.loras) {
+        $dest = Join-Path $Comfy "models\loras\$($e.archivo)"
+        if (-not (Get-Verified $e.urls $dest $e.sha256 $token)) { $faltan += $e.etiqueta }
+    }
+    if ($faltan.Count -gt 0) { Warn "no se pudieron bajar: $($faltan -join ', '). El panel los saltara; vuelve a ejecutar para reintentar." }
+}
+
+$extra = @($catalog.modelos_extra | Where-Object { -not (Test-Path (Join-Path $Comfy "models\diffusion_models\$($_.archivo).ok")) })
+if (-not $SinModelos -and $extra.Count -gt 0) {
+    Step "Modelos alternativos: UnCanny (fotorrealismo) y GonzaLomo (rapido)"
+    $resp = Read-Host "    Descargar estos modelos? Son ~8.5 GB cada uno. [s/N]"
+    if ($resp -match "^[sSyY]") {
+        foreach ($e in $extra) {
+            $dest = Join-Path $Comfy "models\diffusion_models\$($e.archivo)"
+            if (-not (Get-Verified $e.urls $dest $e.sha256 $token)) { Warn "no se pudo bajar $($e.etiqueta)" }
+        }
+    } else { Ok "omitidos (puedes volver a ejecutar el instalador cuando quieras)" }
+}
 
 # ------------------------------------------------------------------ 7. nodos propios + workflows
 Step "Nodos del Panel Chroma"

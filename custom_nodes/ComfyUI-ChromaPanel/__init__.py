@@ -9,7 +9,10 @@ El muestreo usa el KSampler interno de ComfyUI, igual que la plantilla oficial
 de Chroma (euler / beta, shift 1.0, T5 min_padding 1).
 """
 
+import json
+import logging
 import math
+import os
 
 import torch
 
@@ -20,6 +23,8 @@ import folder_paths
 import nodes
 from comfy_extras.nodes_model_advanced import ModelSamplingAuraFlow
 from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel, UpscaleModelLoader
+
+from .etiquetas import ChromaEtiquetas
 
 NINGUNO = "Ninguno"
 
@@ -86,7 +91,10 @@ class ChromaPanel:
                 "escalado": ([ESCALADO_NO, ESCALADO_RAPIDO, ESCALADO_DETALLE], {"default": ESCALADO_NO}),
                 "fuerza_detalle": ("FLOAT", {"default": 0.35, "min": 0.1, "max": 0.7, "step": 0.01,
                                              "tooltip": "Solo en 'Detallado': cuanto redibuja la 2a pasada. 0.3-0.4 recomendado."}),
-            }
+            },
+            "optional": {
+                "etiquetas": ("CHROMA_ETIQUETAS", {"tooltip": "Conecta aqui los Botones de prompt."}),
+            },
         }
 
     RETURN_TYPES = ("CHROMA_AJUSTES",)
@@ -96,9 +104,12 @@ class ChromaPanel:
     DESCRIPTION = "Todos los ajustes de Chroma en un solo lugar. Conectalo al Motor Chroma."
 
     def armar(self, modo, prompt, negativo, resolucion, ancho, alto, semilla, pasos, cfg, sampler, scheduler,
-              fuerza_referencia, escalado, fuerza_detalle):
+              fuerza_referencia, escalado, fuerza_detalle, etiquetas=None):
         if resolucion in RESOLUCIONES:
             ancho, alto = RESOLUCIONES[resolucion]
+        if etiquetas:
+            prompt = " ".join(t for t in (etiquetas["positivo"], prompt.strip()) if t)
+            negativo = ", ".join(t for t in (negativo.strip().rstrip("."), etiquetas["negativo"]) if t)
         return ({
             "referencia": modo == MODO_REFERENCIA,
             "prompt": prompt,
@@ -116,33 +127,72 @@ class ChromaPanel:
         },)
 
 
+def _catalogo():
+    ruta = os.path.join(os.path.dirname(__file__), "catalogo.json")
+    with open(ruta, encoding="utf-8") as f:
+        return json.load(f)
+
+
 class ChromaLoras:
-    HUECOS = 4
+    """LoRAs del pack con interruptor y barra de fuerza + 2 huecos libres."""
+    LIBRES = 2
 
     def __init__(self):
         self.cargador = nodes.LoraLoader()  # reutiliza la cache de LoRA de ComfyUI
 
     @classmethod
     def INPUT_TYPES(cls):
-        loras = [NINGUNO] + folder_paths.get_filename_list("loras")
         req = {"model": ("MODEL",)}
-        for i in range(1, cls.HUECOS + 1):
-            req[f"lora_{i}"] = (loras, {"default": NINGUNO})
-            req[f"fuerza_{i}"] = ("FLOAT", {"default": 0.8, "min": -3.0, "max": 3.0, "step": 0.05})
+        for e in _catalogo()["loras"]:
+            req[e["etiqueta"]] = ("BOOLEAN", {"default": e["activo"], "label_on": "ACTIVADO", "label_off": "apagado",
+                                              "tooltip": e["nota"] or e["etiqueta"]})
+            req["fuerza " + e["clave"]] = ("FLOAT", {"default": e["fuerza"], "min": e["min"], "max": e["max"],
+                                                     "step": 0.05, "display": "slider"})
+        loras = [NINGUNO] + folder_paths.get_filename_list("loras")
+        for i in range(1, cls.LIBRES + 1):
+            req[f"libre {i}"] = ("BOOLEAN", {"default": False, "label_on": "ACTIVADO", "label_off": "apagado"})
+            req[f"libre {i} archivo"] = (loras, {"default": NINGUNO})
+            req[f"libre {i} fuerza"] = ("FLOAT", {"default": 0.8, "min": -2.0, "max": 2.0, "step": 0.05, "display": "slider"})
+            req[f"libre {i} palabras"] = ("STRING", {"default": "", "tooltip": "Palabras clave (trigger) de ese LoRA, si tiene."})
         return {"required": req}
 
-    RETURN_TYPES = ("MODEL",)
+    RETURN_TYPES = ("MODEL", "CHROMA_LORAS")
+    RETURN_NAMES = ("model", "info_loras")
     FUNCTION = "aplicar"
     CATEGORY = "Chroma"
-    DESCRIPTION = "Hasta 4 LoRAs para Chroma. Pon 'Ninguno' o fuerza 0 para desactivar un hueco. Archivos en ComfyUI/models/loras."
+    DESCRIPTION = "Pack de LoRAs para Chroma: activa con el interruptor y ajusta la fuerza con la barra."
+
+    def _aplicar_uno(self, model, nombre, fuerza):
+        if folder_paths.get_full_path("loras", nombre) is None:
+            logging.warning(f"[Chroma] LoRA no encontrado, se omite: {nombre} (vuelve a ejecutar INSTALAR.bat)")
+            return model, False
+        return self.cargador.load_lora(model, None, nombre, fuerza, 0)[0], True
 
     def aplicar(self, model, **kw):
-        for i in range(1, self.HUECOS + 1):
-            nombre, fuerza = kw[f"lora_{i}"], kw[f"fuerza_{i}"]
-            if nombre == NINGUNO or fuerza == 0:
+        palabras, flash, activos = [], False, []
+        for e in _catalogo()["loras"]:
+            fuerza = kw["fuerza " + e["clave"]]
+            if not kw[e["etiqueta"]] or fuerza == 0:
                 continue
-            model = self.cargador.load_lora(model, None, nombre, fuerza, 0)[0]
-        return (model,)
+            model, ok = self._aplicar_uno(model, e["archivo"], fuerza)
+            if not ok:
+                continue
+            activos.append(f"{e['etiqueta']} ({fuerza})")
+            if e["palabras"]:
+                palabras.append(e["palabras"])
+            if e["clave"] == "velocidad_flash":
+                flash = True
+        for i in range(1, self.LIBRES + 1):
+            nombre, fuerza = kw[f"libre {i} archivo"], kw[f"libre {i} fuerza"]
+            if not kw[f"libre {i}"] or nombre == NINGUNO or fuerza == 0:
+                continue
+            model, ok = self._aplicar_uno(model, nombre, fuerza)
+            if ok:
+                activos.append(f"{nombre} ({fuerza})")
+                if kw[f"libre {i} palabras"].strip():
+                    palabras.append(kw[f"libre {i} palabras"].strip())
+        logging.info("[Chroma] LoRAs activos: " + (", ".join(activos) or "ninguno"))
+        return (model, {"palabras": palabras, "flash": flash})
 
 
 class ChromaMotor:
@@ -159,11 +209,12 @@ class ChromaMotor:
             },
             "optional": {
                 "imagen_referencia": ("IMAGE",),
+                "info_loras": ("CHROMA_LORAS",),
             },
         }
 
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("imagen",)
+    RETURN_TYPES = ("IMAGE", "STRING")
+    RETURN_NAMES = ("imagen", "prompt_final")
     FUNCTION = "generar"
     CATEGORY = "Chroma"
     DESCRIPTION = "Genera la imagen con los ajustes del Panel Chroma."
@@ -196,10 +247,18 @@ class ChromaMotor:
             img = img.reshape(-1, img.shape[-3], img.shape[-2], img.shape[-1])
         return img
 
-    def generar(self, model, clip, vae, ajustes, upscaler, imagen_referencia=None):
-        a = ajustes
+    def generar(self, model, clip, vae, ajustes, upscaler, imagen_referencia=None, info_loras=None):
+        a = dict(ajustes)
+        if info_loras:
+            if info_loras["palabras"]:
+                a["prompt"] = ", ".join(info_loras["palabras"]) + ". " + a["prompt"]
+            if info_loras["flash"]:
+                # el LoRA Flash esta destilado para CFG 1 y pocos pasos
+                a["cfg"], a["pasos"] = 1.0, min(a["pasos"], 12)
+                logging.info("[Chroma] Modo rapido Flash: CFG 1, %d pasos", a["pasos"])
         if not a["prompt"].strip():
-            raise ValueError("El prompt del Panel Chroma esta vacio.")
+            raise ValueError("El prompt esta vacio: escribe algo en el Panel o activa Botones de prompt.")
+        logging.info("[Chroma] Prompt final: %s", a["prompt"])
         if a["escalado"] != ESCALADO_NO and upscaler == NINGUNO:
             raise ValueError("Elegiste escalado pero el Motor Chroma no tiene 'upscaler'. Elige uno o pon escalado = No.")
 
@@ -220,7 +279,7 @@ class ChromaMotor:
         imagen = self._decodificar(vae, latente)
 
         if a["escalado"] == ESCALADO_NO:
-            return (imagen,)
+            return (imagen, a["prompt"])
 
         modelo_esc = UpscaleModelLoader.execute(upscaler).result[0]
         grande = ImageUpscaleWithModel.execute(modelo_esc, imagen).result[0]
@@ -235,16 +294,18 @@ class ChromaMotor:
             latente = nodes.common_ksampler(model, a["semilla"], pasos, a["cfg"], a["sampler"], a["scheduler"],
                                             positivo, negativo, latente, denoise=a["fuerza_detalle"])[0]
             imagen = self._decodificar(vae, latente)
-        return (imagen,)
+        return (imagen, a["prompt"])
 
 
 NODE_CLASS_MAPPINGS = {
     "ChromaPanel": ChromaPanel,
+    "ChromaEtiquetas": ChromaEtiquetas,
     "ChromaLoras": ChromaLoras,
     "ChromaMotor": ChromaMotor,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "ChromaPanel": "Panel Chroma",
+    "ChromaEtiquetas": "Botones de prompt Chroma",
     "ChromaLoras": "LoRAs Chroma",
     "ChromaMotor": "Motor Chroma",
 }

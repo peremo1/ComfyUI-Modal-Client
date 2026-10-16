@@ -13,8 +13,10 @@ Instalador de un clic que deja ComfyUI listo para generar imágenes con **Chroma
 | Modelo | `Chroma1-HD-fp8mixed.safetensors` (8,6 GB) | Versión fp8 oficial de Comfy-Org, cabe en 12 GB |
 | Codificador de texto | `t5xxl_fp8_e4m3fn_scaled.safetensors` (4,8 GB) | |
 | VAE | `ae.safetensors` (0,3 GB) | |
-| Panel Chroma (nodos propios) | `custom_nodes/ComfyUI-ChromaPanel` | Panel de control, 4 LoRAs y un motor con escalado |
+| Panel Chroma (nodos propios) | `custom_nodes/ComfyUI-ChromaPanel` | Botones de prompt, panel de control, LoRAs con interruptor y barra, y un motor con escalado |
 | Upscaler | `4x_foolhardy_Remacri.safetensors` (67 MB) | Para el escalado x2 / x1.5 |
+| Pack de LoRAs | 12 LoRAs, unos 3,4 GB (`catalogo.json`) | Verificados con SHA256 |
+| Modelos alternativos (opcional) | UnCanny v1.3 fp8, GonzaLomo v3 fp8 | 8,5 GB cada uno |
 | Workflows | `Chroma_0_Panel` (recomendado), `Chroma_1_TextoAImagen`, `Chroma_2_ImagenReferencia` | Basados en la plantilla oficial de Chroma de ComfyUI |
 
 Necesitas unos **40 GB libres**. Instálalo en el SSD (C:), no en el disco HDD.
@@ -43,21 +45,48 @@ powershell -ExecutionPolicy Bypass -File scripts\install.ps1 -SinModelos        
 
 ## Workflow recomendado: `Chroma_0_Panel`
 
-Todo se controla desde un único **PANEL DE CONTROL** (el bloque amarillo):
+Todo está en el bloque **CONTROL**:
 
+### 1. Botones de prompt (azul)
+Interruptores y menús en español que escriben el prompt en inglés por ti: sujeto (mujer, hombre, futanari, pareja), edad adulta, cuerpo, pechos, pene, piel, pelo, ropa, poses, lugar, luz, tipo de foto y plano, más casillas para el negativo ("evitar ropa", "evitar otras personas"…). Abajo a la derecha, **"Prompt final"** muestra exactamente el texto en inglés que recibió Chroma.
+
+### 2. Panel de control (amarillo)
 | Ajuste | Qué hace |
 |---|---|
-| **modo** | *Texto a imagen* o *Imagen de referencia (img2img)*, que usa la imagen cargada al lado |
-| **prompt / negativo** | El negativo ya viene con uno genérico para realismo |
-| **resolucion** | Plantillas: retrato 2:3, 3:4, 9:16, cuadrado, paisaje 3:2, 4:3, 16:9, dos tamaños *Rápido* para probar prompts y *Personalizado* (usa ancho y alto) |
-| **semilla** | `randomize` da una distinta en cada imagen; `fixed` repite la misma |
-| **pasos / cfg / sampler / scheduler** | Vienen con los valores oficiales de Chroma (26, 4, euler, beta) |
-| **fuerza_referencia** | Solo en modo referencia: cuánto cambia la imagen (0,3-0,9) |
-| **escalado** | *No*, *Rápido x2* (solo el upscaler, tarda segundos) o *Detallado x1.5* (upscaler más una segunda pasada que redibuja detalles, unos 2-3 min más) |
+| **modo** | *Texto a imagen* o *Imagen de referencia (img2img)* |
+| **prompt / negativo** | Texto libre que se suma a los botones. El negativo genérico de realismo ya viene escrito |
+| **resolucion** | Plantillas: retrato 2:3, 3:4 o 9:16; cuadrado; paisaje 3:2, 4:3 o 16:9; dos tamaños *Rápido* para pruebas; *Personalizado* |
+| **semilla** | `randomize` = una distinta cada vez; `fixed` = repetir |
+| **escalado** | *No*, *Rápido x2* o *Detallado x1.5* (con una segunda pasada que redibuja detalles) |
 
-**Varias imágenes seguidas:** cambia el número que está junto al botón **Run** (por ejemplo, 8) y pulsa Run. Las genera una tras otra, cada una con una semilla nueva si tienes `randomize`.
+**Varias imágenes seguidas:** cambia el número junto al botón **Run** (por ejemplo, 8).
 
-**LoRAs:** el nodo *LoRAs (opcional)* tiene 4 huecos. Copia los `.safetensors` a `ComfyUI\models\loras`, pulsa **R** en ComfyUI para refrescar la lista y elígelos. Una fuerza de 0,6-1,0 es lo normal; con *Ninguno* el hueco queda desactivado. En Civitai, filtra por el modelo base **Chroma**. Los LoRAs de Flux funcionan solo a veces y los de SDXL o Pony no funcionan.
+### 3. LoRAs (interruptor + barra)
+| LoRA | Para qué | Palabra clave (se añade sola) |
+|---|---|---|
+| Lenovo UltraReal | Realismo de foto real (activado por defecto) | `l3n0v0` |
+| GOONTUNE | Realismo NSFW | |
+| Foto profesional | Calidad de sesión de fotos | |
+| NSFW Realism | Escenas sexuales concretas | |
+| Tamaño de pene | **Slider**: -2 = pequeño, +2 = grande | |
+| COCKTASTIC | Detalle de pene (en pruebas, solo Civitai) | |
+| Pezones erectos / Areolas grandes | Detalle anatómico | `erect nipples` / `big areolas nipples` |
+| Vulva cerrada (innie) | Detalle anatómico | `cleft of venus` |
+| Deepthroat | Acto concreto (solo Civitai) | `dprthrt` |
+| Futanari (Flux, experimental) | Hecho para Flux; en Chroma funciona a medias (solo Civitai) | `futanari girl got a penis` |
+| **MODO RÁPIDO (Flash)** | 2-3 veces más rápido: pone CFG 1 y 12 pasos solo; el negativo deja de funcionar | |
+
+Hay además **2 huecos libres** para cualquier LoRA de Chroma que pongas en `ComfyUI\models\loras` (pulsa **R** en ComfyUI para refrescar la lista).
+
+El instalador descarga el pack (unos 3,4 GB) desde copias en Hugging Face y **verifica cada archivo con su SHA256** del original. Los 3 LoRAs que solo están en Civitai necesitan tu API key de Civitai; el instalador te la pide y la guarda solo en tu PC (`C:\IA\civitai_api_key.txt`). También puedes saltarlos pulsando Enter.
+
+### 4. Modelo
+El nodo **MODELO** permite elegir entre:
+- **Chroma1-HD**: el modelo oficial.
+- **UnCanny v1.3**: más fotorrealista; 30-40 pasos, CFG 3,5.
+- **GonzaLomo v3**: rápido; 8-14 pasos, CFG 1-1,3.
+
+Los dos alternativos son opcionales: el instalador pregunta si quieres bajarlos (8,5 GB cada uno).
 
 ## Workflows sencillos
 

@@ -1,30 +1,261 @@
 {
   "id": "6b0c3c1e-6a43-4d5e-9a57-c4a7c1a0c0de",
   "revision": 0,
-  "last_node_id": 9,
-  "last_link_id": 7,
+  "last_node_id": 11,
+  "last_link_id": 10,
   "nodes": [
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        1480,
+        0
+      ],
+      "size": [
+        400,
+        82
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "Chroma1-HD-fp8mixed.safetensors",
+        "default"
+      ],
+      "title": "MODELO (Chroma1-HD / UnCanny / GonzaLomo)",
+      "color": "#553",
+      "bgcolor": "#664"
+    },
+    {
+      "id": 2,
+      "type": "CLIPLoader",
+      "pos": [
+        460,
+        1340
+      ],
+      "size": [
+        380,
+        106
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            5
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "t5xxl_fp8_e4m3fn_scaled.safetensors",
+        "chroma",
+        "default"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "VAELoader",
+      "pos": [
+        460,
+        1480
+      ],
+      "size": [
+        380,
+        58
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            6
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "ae.safetensors"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "ChromaLoras",
+      "pos": [
+        1000,
+        0
+      ],
+      "size": [
+        460,
+        1240
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            3
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "info_loras",
+          "type": "CHROMA_LORAS",
+          "links": [
+            4
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ChromaLoras"
+      },
+      "widgets_values": [
+        true,
+        0.8,
+        false,
+        0.7,
+        false,
+        0.6,
+        false,
+        0.7,
+        false,
+        0.0,
+        false,
+        0.7,
+        false,
+        0.8,
+        false,
+        0.8,
+        false,
+        0.8,
+        false,
+        0.8,
+        false,
+        0.7,
+        false,
+        1.0,
+        false,
+        "Ninguno",
+        0.8,
+        "",
+        false,
+        "Ninguno",
+        0.8,
+        ""
+      ],
+      "title": "LoRAs (interruptor + barra)",
+      "color": "#553",
+      "bgcolor": "#664"
+    },
+    {
+      "id": 5,
+      "type": "LoadImage",
+      "pos": [
+        1480,
+        120
+      ],
+      "size": [
+        400,
+        520
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            8
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "chroma_referencia_ejemplo.png",
+        "image"
+      ],
+      "title": "Imagen de referencia (solo modo img2img)",
+      "color": "#553",
+      "bgcolor": "#664"
+    },
     {
       "id": 6,
       "type": "ChromaPanel",
       "pos": [
-        0,
+        460,
         0
       ],
       "size": [
         520,
-        900
+        1000
       ],
       "flags": {},
       "order": 6,
       "mode": 0,
-      "inputs": [],
+      "inputs": [
+        {
+          "name": "etiquetas",
+          "type": "CHROMA_ETIQUETAS",
+          "link": 1,
+          "shape": 7
+        }
+      ],
       "outputs": [
         {
           "name": "ajustes",
           "type": "CHROMA_AJUSTES",
           "links": [
-            5
+            7
           ],
           "slot_index": 0
         }
@@ -34,7 +265,7 @@
       },
       "widgets_values": [
         "Texto a imagen",
-        "Photograph of a woman in her late twenties with wavy auburn hair, wearing black lace lingerie, sitting on the edge of an unmade bed in a sunlit loft apartment. Amateur photography, natural light, soft shadows, realistic skin texture, shot on a 35mm lens.",
+        "",
         "This low quality, blurry, out of focus image is a cartoon, anime, illustration, 3D render, CGI, painting, drawing or sketch. It has a toony aesthetic with bold outlines and flat colors, plastic or waxy airbrushed skin, doll-like face, uncanny valley look, oversaturated colors, excessive bloom, chromatic aberration, heavy vignette, jpeg artifacts, noise, overexposed or underexposed lighting. The anatomy is wrong: deformed body, bad proportions, extra limbs, missing limbs, extra arms, extra legs, fused fingers, too many fingers, missing fingers, malformed hands, twisted wrists, distorted face, asymmetrical eyes, crossed eyes, deformed genitals, merged body parts, elongated neck, broken spine. The image contains text, watermark, logo, signature, caption, frame, border, collage or split screen. Childlike features, child, minor, underage, teen.",
         "Retrato 2:3  - 832x1216",
         1024,
@@ -54,104 +285,88 @@
       "bgcolor": "#664"
     },
     {
-      "id": 4,
-      "type": "ChromaLoras",
+      "id": 7,
+      "type": "ChromaMotor",
       "pos": [
-        540,
-        0
+        880,
+        1340
       ],
       "size": [
-        380,
-        300
+        400,
+        200
       ],
       "flags": {},
-      "order": 4,
+      "order": 7,
       "mode": 0,
       "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 1
+          "link": 3
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 5
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 6
+        },
+        {
+          "name": "ajustes",
+          "type": "CHROMA_AJUSTES",
+          "link": 7
+        },
+        {
+          "name": "imagen_referencia",
+          "type": "IMAGE",
+          "link": 8,
+          "shape": 7
+        },
+        {
+          "name": "info_loras",
+          "type": "CHROMA_LORAS",
+          "link": 4,
+          "shape": 7
         }
       ],
       "outputs": [
         {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            2
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ChromaLoras"
-      },
-      "widgets_values": [
-        "Ninguno",
-        0.8,
-        "Ninguno",
-        0.8,
-        "Ninguno",
-        0.8,
-        "Ninguno",
-        0.8
-      ],
-      "title": "LoRAs (opcional)",
-      "color": "#553",
-      "bgcolor": "#664"
-    },
-    {
-      "id": 5,
-      "type": "LoadImage",
-      "pos": [
-        540,
-        330
-      ],
-      "size": [
-        380,
-        570
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "IMAGE",
+          "name": "imagen",
           "type": "IMAGE",
           "links": [
-            6
+            9
           ],
           "slot_index": 0
         },
         {
-          "name": "MASK",
-          "type": "MASK",
-          "links": null
+          "name": "prompt_final",
+          "type": "STRING",
+          "links": [
+            10
+          ],
+          "slot_index": 1
         }
       ],
       "properties": {
-        "Node name for S&R": "LoadImage"
+        "Node name for S&R": "ChromaMotor"
       },
       "widgets_values": [
-        "chroma_referencia_ejemplo.png",
-        "image"
-      ],
-      "title": "Imagen de referencia (solo modo img2img)",
-      "color": "#553",
-      "bgcolor": "#664"
+        "4x_foolhardy_Remacri.safetensors"
+      ]
     },
     {
       "id": 8,
       "type": "SaveImage",
       "pos": [
-        960,
+        1920,
         0
       ],
       "size": [
-        700,
-        900
+        760,
+        1000
       ],
       "flags": {},
       "order": 8,
@@ -160,7 +375,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 7
+          "link": 9
         }
       ],
       "outputs": [],
@@ -173,168 +388,10 @@
       "title": "Resultado"
     },
     {
-      "id": 1,
-      "type": "UNETLoader",
-      "pos": [
-        0,
-        1000
-      ],
-      "size": [
-        380,
-        82
-      ],
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            1
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "UNETLoader"
-      },
-      "widgets_values": [
-        "Chroma1-HD-fp8mixed.safetensors",
-        "default"
-      ]
-    },
-    {
-      "id": 2,
-      "type": "CLIPLoader",
-      "pos": [
-        0,
-        1110
-      ],
-      "size": [
-        380,
-        106
-      ],
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": [
-            3
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "CLIPLoader"
-      },
-      "widgets_values": [
-        "t5xxl_fp8_e4m3fn_scaled.safetensors",
-        "chroma",
-        "default"
-      ]
-    },
-    {
-      "id": 3,
-      "type": "VAELoader",
-      "pos": [
-        0,
-        1240
-      ],
-      "size": [
-        380,
-        58
-      ],
-      "flags": {},
-      "order": 3,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "VAE",
-          "type": "VAE",
-          "links": [
-            4
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "VAELoader"
-      },
-      "widgets_values": [
-        "ae.safetensors"
-      ]
-    },
-    {
-      "id": 7,
-      "type": "ChromaMotor",
-      "pos": [
-        420,
-        1000
-      ],
-      "size": [
-        380,
-        160
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 2
-        },
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 3
-        },
-        {
-          "name": "vae",
-          "type": "VAE",
-          "link": 4
-        },
-        {
-          "name": "ajustes",
-          "type": "CHROMA_AJUSTES",
-          "link": 5
-        },
-        {
-          "name": "imagen_referencia",
-          "type": "IMAGE",
-          "link": 6,
-          "shape": 7
-        }
-      ],
-      "outputs": [
-        {
-          "name": "imagen",
-          "type": "IMAGE",
-          "links": [
-            7
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ChromaMotor"
-      },
-      "widgets_values": [
-        "4x_foolhardy_Remacri.safetensors"
-      ]
-    },
-    {
       "id": 9,
       "type": "MarkdownNote",
       "pos": [
-        1700,
+        2720,
         0
       ],
       "size": [
@@ -349,15 +406,140 @@
       "title": "Guia rapida",
       "properties": {},
       "widgets_values": [
-        "## Como usarlo\n\n**Todo se controla en el PANEL DE CONTROL** (amarillo).\n\n- **modo**: *Texto a imagen* o *Imagen de referencia* (usa la imagen de al lado).\n- **resolucion**: plantillas listas. *Rapido* = para probar prompts. *Personalizado* usa ancho/alto.\n- **semilla**: `randomize` = distinta cada vez - `fixed` = repetir.\n- **escalado**: *Rapido x2* (segundos) o *Detallado x1.5* (redibuja detalles, +2-3 min).\n\n### Varias imagenes seguidas\nCambia el numero junto al boton **Run** (ej. 8) y pulsa Run: genera una tras otra, cada una con semilla nueva (con `randomize`).\n\n### LoRAs\nPon los `.safetensors` en `ComfyUI/models/loras`, pulsa **R** para refrescar y eligelos en el nodo LoRAs. Fuerza 0.6-1.0.\n\nImagenes en `ComfyUI/output/Chroma/`.\n"
+        "## Como usarlo\n\n1. **BOTONES DE PROMPT** (azul): enciende lo que quieras ver. Escriben el ingles por ti.\n2. **PANEL DE CONTROL**: en *prompt* escribe solo lo extra (puede quedar vacio). Elige resolucion, semilla y escalado.\n3. **LoRAs**: enciende con el interruptor y ajusta la barra.\n4. Pulsa **Run**. Abajo a la derecha ves el *prompt final* en ingles.\n\n**Varias imagenes seguidas:** cambia el numero junto a **Run** (ej. 8).\n\n**Modelo:** en el nodo MODELO elige Chroma1-HD, UnCanny o GonzaLomo.\n- UnCanny: 30-40 pasos, CFG 3.5.\n- GonzaLomo: 8-14 pasos, CFG 1-1.3.\n\n**Modo rapido:** activa el LoRA *Flash* (pone CFG 1 y 12 pasos solo).\n"
       ],
       "color": "#432",
       "bgcolor": "#653"
+    },
+    {
+      "id": 10,
+      "type": "ChromaEtiquetas",
+      "pos": [
+        0,
+        0
+      ],
+      "size": [
+        440,
+        1240
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "etiquetas",
+          "type": "CHROMA_ETIQUETAS",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "prompt_generado",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ChromaEtiquetas"
+      },
+      "widgets_values": [
+        true,
+        false,
+        false,
+        false,
+        "20 a 29",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        "-",
+        "-",
+        "amateur/movil",
+        "-",
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "title": "BOTONES DE PROMPT (espanol -> ingles)",
+      "color": "#335",
+      "bgcolor": "#446"
+    },
+    {
+      "id": 11,
+      "type": "PreviewAny",
+      "pos": [
+        1920,
+        1040
+      ],
+      "size": [
+        760,
+        200
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "title": "Prompt final que recibio Chroma (en ingles)"
     }
   ],
   "links": [
     [
       1,
+      10,
+      0,
+      6,
+      0,
+      "CHROMA_ETIQUETAS"
+    ],
+    [
+      2,
       1,
       0,
       4,
@@ -365,7 +547,7 @@
       "MODEL"
     ],
     [
-      2,
+      3,
       4,
       0,
       7,
@@ -373,7 +555,15 @@
       "MODEL"
     ],
     [
-      3,
+      4,
+      4,
+      1,
+      7,
+      5,
+      "CHROMA_LORAS"
+    ],
+    [
+      5,
       2,
       0,
       7,
@@ -381,7 +571,7 @@
       "CLIP"
     ],
     [
-      4,
+      6,
       3,
       0,
       7,
@@ -389,7 +579,7 @@
       "VAE"
     ],
     [
-      5,
+      7,
       6,
       0,
       7,
@@ -397,7 +587,7 @@
       "CHROMA_AJUSTES"
     ],
     [
-      6,
+      8,
       5,
       0,
       7,
@@ -405,12 +595,20 @@
       "IMAGE"
     ],
     [
-      7,
+      9,
       7,
       0,
       8,
       0,
       "IMAGE"
+    ],
+    [
+      10,
+      7,
+      1,
+      11,
+      0,
+      "STRING"
     ]
   ],
   "groups": [
@@ -420,8 +618,8 @@
       "bounding": [
         -20,
         -80,
-        960,
-        1000
+        1920,
+        1340
       ],
       "color": "#b58b2a",
       "font_size": 28,
@@ -431,10 +629,10 @@
       "id": 2,
       "title": "Motor (no hace falta tocar)",
       "bounding": [
-        -20,
-        920,
-        840,
-        400
+        440,
+        1270,
+        860,
+        300
       ],
       "color": "#444",
       "font_size": 22,
@@ -444,7 +642,7 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.75,
+      "scale": 0.6,
       "offset": [
         60,
         120

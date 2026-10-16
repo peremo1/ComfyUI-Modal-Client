@@ -6,7 +6,7 @@ Instalador de un clic que deja ComfyUI listo para generar imágenes con **Chroma
 
 | Componente | Versión / archivo | Notas |
 |---|---|---|
-| ComfyUI portable (NVIDIA) | **v0.41.1** | Incluye Python 3.13 y PyTorch cu130 |
+| ComfyUI portable (NVIDIA) | **v0.41.0** | Incluye Python 3.13 y PyTorch cu130 |
 | ComfyUI-Manager | el que fija esa versión (`manager_requirements.txt`) | Se activa con `--enable-manager` |
 | Visual C++ Redistributable | 2015-2022 x64 | Solo si te falta o está desactualizado |
 | Triton + SageAttention | `triton-windows` según tu PyTorch + `sageattention==1.0.6` | Optimizador **opcional**. El instalador lo prueba en tu GPU y solo lo activa si funciona |

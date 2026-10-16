@@ -14,7 +14,7 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"   # Invoke-WebRequest es 10x mas lento con la barra de progreso
 
 # ------------------------------------------------------------------ versiones fijadas
-$ComfyVersion   = "v0.41.1"
+$ComfyVersion   = "v0.41.0"   # v0.41.1 no publico paquete portable; 0.41.0 es la ultima que lo tiene
 $ComfyUrl       = "https://github.com/comfyanonymous/ComfyUI/releases/download/$ComfyVersion/ComfyUI_windows_portable_nvidia.7z"
 $SevenZipUrl    = "https://www.7-zip.org/a/7zr.exe"
 $VcRedistUrl    = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
@@ -58,7 +58,7 @@ function Get-File($url, $dest, [double]$minGB = 0) {
     if (Test-Path $dest) { Remove-Item $dest -Force }
     Move-Item $part $dest
     New-Item "$dest.ok" -ItemType File -Force | Out-Null
-    Ok "$(Split-Path -Leaf $dest) ($([math]::Round($sizeGB,2)) GB)"
+    Ok "$(Split-Path -Leaf $dest) ($([math]::Round($sizeGB * 1024)) MB)"
 }
 
 function Pip { & $Python -s -m pip --disable-pip-version-check @args | Out-Host; return $LASTEXITCODE }

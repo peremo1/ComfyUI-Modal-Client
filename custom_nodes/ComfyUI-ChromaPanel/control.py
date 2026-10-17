@@ -89,7 +89,7 @@ class ChromaControl:
         else:
             mapa = mapa_bordes(img)
         logging.info("[Chroma] ControlNet %s: fuerza %.2f hasta %.0f%%", tipo.split(" ")[0], fuerza, hasta * 100)
-        return ({"activo": True, "mapa": mapa, "fuerza": fuerza, "hasta": hasta}, mapa)
+        return ({"activo": True, "tipo": tipo, "mapa": mapa, "fuerza": fuerza, "hasta": hasta}, mapa)
 
 
 def aplicar_control(control, positivo, negativo, vae):

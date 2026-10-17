@@ -370,10 +370,16 @@
         {
           "name": "prompt_final",
           "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "informe",
+          "type": "STRING",
           "links": [
             17
           ],
-          "slot_index": 1
+          "slot_index": 2
         }
       ],
       "properties": {
@@ -432,7 +438,7 @@
       "title": "Guia rapida",
       "properties": {},
       "widgets_values": [
-        "## Como usarlo\n\n1. **BOTONES DE PROMPT** (azul): enciende lo que quieras ver. Escriben el ingles por ti.\n2. **PANEL DE CONTROL**: en *prompt* escribe solo lo extra (puede quedar vacio). Elige resolucion, semilla y escalado.\n3. **LoRAs**: enciende con el interruptor y ajusta la barra.\n4. Pulsa **Run**. Abajo a la derecha ves el *prompt final* en ingles.\n\n**Varias imagenes seguidas:** cambia el numero junto a **Run** (ej. 8).\n\n**Modelo:** en el nodo MODELO elige Chroma1-HD, UnCanny o GonzaLomo.\n- UnCanny: 30-40 pasos, CFG 3.5.\n- GonzaLomo: 8-14 pasos, CFG 1-1.3.\n\n**Quitar o cambiar ropa:** modo *Inpaint*. Clic derecho en la imagen de referencia > *Open in MaskEditor*, pinta la ropa, guarda. fuerza_referencia 1.0.\n\n**ControlNet (azul, abajo):** sube una imagen guia, elige Pose / Profundidad / Bordes y activalo. Copia la postura o el angulo de camara de esa imagen.\n\n**Angulo de camara:** en Botones de prompt, menus *camara angulo* y *camara lente*.\n\n**Calidad:** el DETALLADOR redibuja caras (y manos si lo activas). El RETOQUE da nitidez, grano y color de camara real. Sampler *res_2s* + scheduler *bong_tangent* = mas detalle (mas lento).\n\n**Probar ajustes:** activa el COMPARADOR, elige el ajuste (cfg, pasos, sampler...) y escribe valores separados por coma. Sale una cuadricula con la misma semilla.\n\n**Modo rapido:** activa el LoRA *Flash* (pone CFG 1 y 12 pasos solo).\n"
+        "## Como usarlo\n\n1. **BOTONES DE PROMPT** (azul): enciende lo que quieras ver. Escriben el ingles por ti.\n2. **PANEL DE CONTROL**: en *prompt* escribe solo lo extra (puede quedar vacio). Elige resolucion, semilla y escalado.\n3. **LoRAs**: enciende con el interruptor y ajusta la barra.\n4. Pulsa **Run**. Abajo a la derecha, el **INFORME** muestra todo lo que se hizo: pulsa *Copiar informe* y pegalo en el chat para pedir ayuda.\n\n**Varias imagenes seguidas:** cambia el numero junto a **Run** (ej. 8).\n\n**Modelo:** en el nodo MODELO elige Chroma1-HD, UnCanny o GonzaLomo.\n- UnCanny: 30-40 pasos, CFG 3.5.\n- GonzaLomo: 8-14 pasos, CFG 1-1.3.\n\n**Quitar o cambiar ropa:** modo *Inpaint*. Clic derecho en la imagen de referencia > *Open in MaskEditor*, pinta la ropa, guarda. fuerza_referencia 1.0.\n\n**ControlNet (azul, abajo):** sube una imagen guia, elige Pose / Profundidad / Bordes y activalo. Copia la postura o el angulo de camara de esa imagen.\n\n**Angulo de camara:** en Botones de prompt, menus *camara angulo* y *camara lente*.\n\n**Calidad:** el DETALLADOR redibuja caras (y manos si lo activas). El RETOQUE da nitidez, grano y color de camara real. Sampler *res_2s* + scheduler *bong_tangent* = mas detalle (mas lento).\n\n**Probar ajustes:** activa el COMPARADOR, elige el ajuste (cfg, pasos, sampler...) y escribe valores separados por coma. Sale una cuadricula con la misma semilla.\n\n**Modo rapido:** activa el LoRA *Flash* (pone CFG 1 y 12 pasos solo).\n"
       ],
       "color": "#432",
       "bgcolor": "#653"
@@ -523,38 +529,33 @@
     },
     {
       "id": 11,
-      "type": "PreviewAny",
+      "type": "ChromaInforme",
       "pos": [
         1920,
         1040
       ],
       "size": [
         760,
-        200
+        560
       ],
       "flags": {},
       "order": 11,
       "mode": 0,
       "inputs": [
         {
-          "name": "source",
-          "type": "*",
+          "name": "informe",
+          "type": "STRING",
           "link": 17
         }
       ],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": null,
-          "slot_index": 0
-        }
-      ],
+      "outputs": [],
       "properties": {
-        "Node name for S&R": "PreviewAny"
+        "Node name for S&R": "ChromaInforme"
       },
       "widgets_values": [],
-      "title": "Prompt final que recibio Chroma (en ingles)"
+      "title": "INFORME (boton Copiar informe -> pegalo en el chat)",
+      "color": "#335",
+      "bgcolor": "#446"
     },
     {
       "id": 12,
@@ -933,7 +934,7 @@
     [
       17,
       7,
-      1,
+      2,
       11,
       0,
       "STRING"

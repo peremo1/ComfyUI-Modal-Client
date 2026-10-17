@@ -107,7 +107,14 @@ Sube una **imagen guía**, elige el tipo y actívalo con el interruptor:
 | **Retoque final** | Nitidez, grano de película, viñeta, saturación y temperatura de color, para quitar el aspecto "plástico" | Viene activado con valores suaves |
 | **RES4LYF** | Samplers `res_2s`, `res_3s`… y schedulers `bong_tangent`, `beta57` en el Panel | `res_2s` + `bong_tangent`: más detalle; cada paso tarda unas 2 veces más |
 
-### 6. Modelo
+### 6. Informe para pedir ayuda
+Abajo a la derecha, el nodo **INFORME** muestra, después de cada Run:
+- **Todos los ajustes** del workflow: botones encendidos, LoRAs activos, panel, ControlNet, detallador…
+- **Lo que hizo el motor**: tamaño, modo, sampler, LoRAs aplicados, caras y manos detectadas, tiempo, VRAM usada, y el prompt y el negativo finales en inglés.
+
+Pulsa **Copiar informe** y pégalo en el chat. También se guarda en `output\\Chroma\\informes\\`.
+
+### 7. Modelo
 El nodo **MODELO** permite elegir entre:
 - **Chroma1-HD**: el modelo oficial.
 - **UnCanny v1.3**: más fotorrealista; 30-40 pasos, CFG 3,5.

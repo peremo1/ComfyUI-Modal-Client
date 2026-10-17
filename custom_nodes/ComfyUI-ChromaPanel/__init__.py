@@ -13,6 +13,7 @@ import json
 import logging
 import math
 import os
+import time
 
 import numpy as np
 import torch
@@ -28,6 +29,7 @@ from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel, UpscaleModel
 
 from .control import ChromaControl, aplicar_control
 from .etiquetas import ChromaEtiquetas
+from .informe import ChromaInforme
 from .herramientas import (YOLO_CARA, YOLO_MANO, ChromaComparador, ChromaDetallador, ChromaRetoque,
                            cuadricula, detallar, detectar)
 
@@ -208,7 +210,7 @@ class ChromaLoras:
                 if kw[f"libre {i} palabras"].strip():
                     palabras.append(kw[f"libre {i} palabras"].strip())
         logging.info("[Chroma] LoRAs activos: " + (", ".join(activos) or "ninguno"))
-        return (model, {"palabras": palabras, "flash": flash})
+        return (model, {"palabras": palabras, "flash": flash, "activos": activos})
 
 
 class ChromaMotor:
@@ -233,8 +235,8 @@ class ChromaMotor:
             },
         }
 
-    RETURN_TYPES = ("IMAGE", "STRING")
-    RETURN_NAMES = ("imagen", "prompt_final")
+    RETURN_TYPES = ("IMAGE", "STRING", "STRING")
+    RETURN_NAMES = ("imagen", "prompt_final", "informe")
     FUNCTION = "generar"
     CATEGORY = "Chroma"
     DESCRIPTION = "Genera la imagen con los ajustes del Panel Chroma."
@@ -299,6 +301,10 @@ class ChromaMotor:
     def generar(self, model, clip, vae, ajustes, upscaler, imagen_referencia=None, info_loras=None, mascara=None,
                 control=None, detallador=None, comparador=None):
         a = dict(ajustes)
+        t0 = time.time()
+        log = []
+        if torch.cuda.is_available():
+            torch.cuda.reset_peak_memory_stats()
         if info_loras:
             if info_loras["palabras"]:
                 a["prompt"] = ", ".join(info_loras["palabras"]) + ". " + a["prompt"]
@@ -326,11 +332,22 @@ class ChromaMotor:
             if a.get("inpaint") and (mascara is None or float(mascara.max()) <= 0):
                 raise ValueError("Modo Inpaint: pinta la zona a cambiar en Load Image (clic derecho > Open in MaskEditor).")
 
-        ctx = dict(model=model, vae=vae, upscaler=upscaler, positivo=positivo, negativo=negativo,
+        log.append(f"modo: {'inpaint' if a.get('inpaint') else ('ultima imagen' if a.get('ultima') else ('referencia' if a['referencia'] else 'texto a imagen'))}")
+        log.append(f"tamano: {a['ancho']}x{a['alto']} | pasos {a['pasos']} | cfg {a['cfg']} | {a['sampler']} / {a['scheduler']} | semilla {a['semilla']}")
+        if a["referencia"]:
+            r = imagen_referencia
+            log.append(f"referencia: {r.shape[2]}x{r.shape[1]} | fuerza_referencia {a['denoise']}")
+        if info_loras:
+            log.append("loras: " + (", ".join(info_loras.get("activos", [])) or "ninguno") + (" | FLASH (cfg 1)" if info_loras["flash"] else ""))
+        if control and control.get("activo"):
+            log.append(f"controlnet: {control.get('tipo', '?').split(' ')[0]} | fuerza {control['fuerza']} | hasta {control['hasta']}")
+        log.append(f"escalado: {a['escalado']}")
+        ctx = dict(model=model, vae=vae, upscaler=upscaler, positivo=positivo, negativo=negativo, log=log,
                    pos_base=pos_base, neg_base=neg_base, referencia=imagen_referencia, mascara=mascara,
                    detallador=detallador)
         if not comparador or not comparador.get("activo"):
-            return (self._una_imagen(a, ctx), a["prompt"])
+            imagen = self._una_imagen(a, ctx)
+            return (imagen, a["prompt"], self._informe(a, log, imagen, t0))
 
         imagenes, etiquetas = [], []
         for v in comparador["valores"]:
@@ -338,7 +355,19 @@ class ChromaMotor:
             logging.info("[Chroma] Comparador: %s = %s", comparador["parametro"], v)
             imagenes.append(self._una_imagen(variante, ctx))
             etiquetas.append(f"{comparador['parametro']} = {v}")
-        return (cuadricula(imagenes, etiquetas), a["prompt"])
+        log.append(f"comparador: {comparador['parametro']} = {comparador['valores']}")
+        grid = cuadricula(imagenes, etiquetas)
+        return (grid, a["prompt"], self._informe(a, log, grid, t0))
+
+    @staticmethod
+    def _informe(a, log, imagen, t0):
+        lineas = ["== LO QUE HIZO EL MOTOR =="] + log
+        lineas.append(f"salida: {imagen.shape[2]}x{imagen.shape[1]} | tiempo total {time.time() - t0:.0f} s")
+        if torch.cuda.is_available():
+            lineas.append(f"VRAM pico: {torch.cuda.max_memory_allocated() / 1024 ** 3:.1f} GB de "
+                          f"{torch.cuda.get_device_properties(0).total_memory / 1024 ** 3:.1f} GB ({torch.cuda.get_device_name(0)})")
+        lineas += ["", "prompt final: " + a["prompt"], "", "negativo final: " + a["negativo"]]
+        return "\n".join(lineas)
 
     def _una_imagen(self, a, c):
         model, vae = c["model"], c["vae"]
@@ -386,6 +415,7 @@ class ChromaMotor:
                 if activo:
                     cajas = detectar(imagen, archivo, d["confianza"])
                     logging.info("[Chroma] Detallador: %d %s", len(cajas), nombre)
+                    c["log"].append(f"detallador: {len(cajas)} {nombre} detectadas | fuerza {d['fuerza']}")
                     imagen = detallar(imagen, cajas, redibujar, d["lado"])
         return imagen
 
@@ -396,6 +426,7 @@ NODE_CLASS_MAPPINGS = {
     "ChromaDetallador": ChromaDetallador,
     "ChromaComparador": ChromaComparador,
     "ChromaRetoque": ChromaRetoque,
+    "ChromaInforme": ChromaInforme,
     "ChromaLoras": ChromaLoras,
     "ChromaMotor": ChromaMotor,
 }
@@ -406,6 +437,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "ChromaDetallador": "Detallador de caras y manos",
     "ChromaComparador": "Comparador de ajustes (cuadricula)",
     "ChromaRetoque": "Retoque final (nitidez, grano, color)",
+    "ChromaInforme": "Informe para copiar",
     "ChromaLoras": "LoRAs Chroma",
     "ChromaMotor": "Motor Chroma",
 }
+
+WEB_DIRECTORY = "./web"

@@ -266,5 +266,40 @@
         "https://civitai.com/api/download/models/2627397"
       ]
     }
+  ],
+  "herramientas": [
+    {
+      "clave": "controlnet",
+      "etiqueta": "ControlNet Union Pro 2.0 (Flux, funciona con Chroma)",
+      "carpeta": "controlnet",
+      "archivo": "flux_controlnet_union_pro_2.safetensors",
+      "mb": 4083,
+      "sha256": "9d03f63f36206bab2f36aed5cfedc8693c2881397534e9d5f9ae9a0a41362517",
+      "urls": [
+        "https://huggingface.co/Shakker-Labs/FLUX.1-dev-ControlNet-Union-Pro-2.0/resolve/main/diffusion_pytorch_model.safetensors"
+      ]
+    },
+    {
+      "clave": "sdpose",
+      "etiqueta": "Detector de pose SDPose",
+      "carpeta": "checkpoints",
+      "archivo": "sdpose_wholebody_fp16.safetensors",
+      "mb": 1828,
+      "sha256": "63d01f9a7494560693b24767f4469d59c9d3266b31ff0a253e74d1e611442721",
+      "urls": [
+        "https://huggingface.co/Comfy-Org/SDPose/resolve/main/checkpoints/sdpose_wholebody_fp16.safetensors"
+      ]
+    },
+    {
+      "clave": "da3",
+      "etiqueta": "Detector de profundidad Depth Anything 3",
+      "carpeta": "geometry_estimation",
+      "archivo": "depth_anything_3_mono_large.safetensors",
+      "mb": 1275,
+      "sha256": "9b44eda5bedba5b4e125686fdb79d1db309c1b9785277576eb930f885b008f96",
+      "urls": [
+        "https://huggingface.co/Comfy-Org/Depth-Anything-3/resolve/main/geometry_estimation/depth_anything_3_mono_large.safetensors"
+      ]
+    }
   ]
 }

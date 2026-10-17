@@ -65,6 +65,15 @@ LUZ = {NADA: "", "natural de ventana": "soft natural window light", "hora dorada
 FOTO = {NADA: "", "amateur/movil": "amateur smartphone photo, unfiltered, real life",
         "profesional": "professional photoshoot, shot on a full-frame camera with an 85mm lens, shallow depth of field",
         "cinematografica": "cinematic film still, 35mm film grain"}
+CAMARA = {NADA: "", "frontal a la altura de los ojos": "eye-level shot, facing the camera",
+          "desde arriba (picado)": "high-angle shot, camera looking down from above",
+          "desde abajo (contrapicado)": "low-angle shot, camera looking up from below",
+          "cenital (vista desde el techo)": "overhead top-down shot, bird's-eye view",
+          "de perfil (lateral)": "side view, profile shot", "tres cuartos": "three-quarter view",
+          "desde atras": "rear view, shot from behind", "POV primera persona": "first-person point of view (POV) shot",
+          "angulo holandes (inclinado)": "dutch angle, tilted camera"}
+LENTE = {NADA: "", "gran angular": "wide-angle lens, 24mm", "normal 50mm": "50mm lens",
+         "retrato 85mm": "85mm portrait lens, shallow depth of field", "teleobjetivo": "telephoto lens, compressed background"}
 PLANO = {NADA: "", "cuerpo entero": "full body shot", "medio cuerpo": "medium shot from the thighs up",
          "primer plano": "close-up shot"}
 
@@ -89,6 +98,8 @@ MENUS = [
     ("luz", LUZ, NADA),
     ("tipo de foto", FOTO, "amateur/movil"),
     ("plano", PLANO, NADA),
+    ("camara angulo", CAMARA, NADA),
+    ("camara lente", LENTE, NADA),
 ]
 
 
@@ -111,7 +122,7 @@ class ChromaEtiquetas:
         for grupo in (DETALLES, ROPA, POSES):
             for k in grupo:
                 req[k] = ("BOOLEAN", {"default": False, "label_on": "SI", "label_off": "no"})
-        for n in ["lugar", "luz", "tipo de foto", "plano"]:
+        for n in ["lugar", "luz", "tipo de foto", "plano", "camara angulo", "camara lente"]:
             req[n] = menus[n]
         for k in NEGATIVOS:
             req[k] = ("BOOLEAN", {"default": False, "label_on": "SI", "label_off": "no"})
@@ -146,7 +157,7 @@ class ChromaEtiquetas:
         poses = [v for k, v in POSES.items() if kw[k]]
         if poses:
             frases.append(_lista(poses).capitalize())
-        for n, d in (("lugar", LUGAR), ("luz", LUZ), ("plano", PLANO), ("tipo de foto", FOTO)):
+        for n, d in (("lugar", LUGAR), ("luz", LUZ), ("plano", PLANO), ("camara angulo", CAMARA), ("camara lente", LENTE), ("tipo de foto", FOTO)):
             if d[kw[n]]:
                 frases.append(d[kw[n]][0].upper() + d[kw[n]][1:])
         positivo = ". ".join(frases) + ("." if frases else "")

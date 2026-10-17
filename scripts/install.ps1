@@ -231,6 +231,18 @@ if ($SinLoras) {
     if ($faltan.Count -gt 0) { Warn "no se pudieron bajar: $($faltan -join ', '). El panel los saltara; vuelve a ejecutar para reintentar." }
 }
 
+$tools = @($catalog.herramientas | Where-Object { -not (Test-Path (Join-Path $Comfy "models\$($_.carpeta)\$($_.archivo).ok")) })
+if (-not $SinModelos -and $tools.Count -gt 0) {
+    Step "Herramientas ControlNet: pose, profundidad y bordes (~7 GB)"
+    $resp = Read-Host "    Descargar ControlNet y sus detectores? [S/n]"
+    if ($resp -notmatch "^[nN]") {
+        foreach ($e in $tools) {
+            $dest = Join-Path $Comfy "models\$($e.carpeta)\$($e.archivo)"
+            if (-not (Get-Verified $e.urls $dest $e.sha256 $null)) { Warn "no se pudo bajar $($e.etiqueta)" }
+        }
+    } else { Ok "omitidas (vuelve a ejecutar el instalador cuando quieras)" }
+}
+
 $extra = @($catalog.modelos_extra | Where-Object { -not (Test-Path (Join-Path $Comfy "models\diffusion_models\$($_.archivo).ok")) })
 if (-not $SinModelos -and $extra.Count -gt 0) {
     Step "Modelos alternativos: UnCanny (fotorrealismo) y GonzaLomo (rapido)"

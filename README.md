@@ -16,6 +16,7 @@ Instalador de un clic que deja ComfyUI listo para generar imágenes con **Chroma
 | Panel Chroma (nodos propios) | `custom_nodes/ComfyUI-ChromaPanel` | Botones de prompt, panel de control, LoRAs con interruptor y barra, y un motor con escalado |
 | Upscaler | `4x_foolhardy_Remacri.safetensors` (67 MB) | Para el escalado x2 / x1.5 |
 | Pack de LoRAs | 12 LoRAs, unos 3,4 GB (`catalogo.json`) | Verificados con SHA256 |
+| ControlNet (opcional) | Union Pro 2.0 + SDPose + Depth Anything 3 | ~7 GB, verificados con SHA256 |
 | Modelos alternativos (opcional) | UnCanny v1.3 fp8, GonzaLomo v3 fp8 | 8,5 GB cada uno |
 | Workflows | `Chroma_0_Panel` (recomendado), `Chroma_1_TextoAImagen`, `Chroma_2_ImagenReferencia` | Basados en la plantilla oficial de Chroma de ComfyUI |
 
@@ -81,7 +82,23 @@ Hay además **2 huecos libres** para cualquier LoRA de Chroma que pongas en `Com
 
 El instalador descarga el pack (unos 3,4 GB) desde copias en Hugging Face y **verifica cada archivo con su SHA256** del original. Los 3 LoRAs que solo están en Civitai necesitan tu API key de Civitai; el instalador te la pide y la guarda solo en tu PC (`C:\IA\civitai_api_key.txt`). También puedes saltarlos pulsando Enter.
 
-### 4. Modelo
+### 4. ControlNet (azul, abajo): copiar pose, forma o composición
+Sube una **imagen guía**, elige el tipo y actívalo con el interruptor:
+
+| Tipo | Qué copia | Detector (incluido en ComfyUI) |
+|---|---|---|
+| **Pose** | Postura del cuerpo, manos y cara | SDPose |
+| **Profundidad** | Volumen, forma y **ángulo de cámara** | Depth Anything 3 |
+| **Bordes** | Contornos y composición exacta | Canny |
+
+- **fuerza** (0,5-0,8): cuánto obedece a la guía.
+- **hasta** (0,6): hasta qué parte de los pasos guía. Menos = más libertad en los detalles.
+- El nodo **"Mapa de control"** muestra lo que ve ControlNet (el esqueleto, el mapa de profundidad…).
+- Usa el **ControlNet Union Pro 2.0 de Flux** (4 GB), que funciona con Chroma. Junto con Chroma supera los 12 GB, así que ComfyUI mueve parte a la RAM: con ControlNet cada imagen tarda bastante más.
+
+**Ángulo de cámara sin ControlNet:** en los Botones de prompt están los menús **cámara ángulo** (picado, contrapicado, cenital, perfil, tres cuartos, desde atrás, POV, holandés) y **cámara lente** (gran angular, 50 mm, 85 mm, teleobjetivo).
+
+### 5. Modelo
 El nodo **MODELO** permite elegir entre:
 - **Chroma1-HD**: el modelo oficial.
 - **UnCanny v1.3**: más fotorrealista; 30-40 pasos, CFG 3,5.

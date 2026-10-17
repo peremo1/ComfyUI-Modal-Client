@@ -26,6 +26,7 @@ import nodes
 from comfy_extras.nodes_model_advanced import ModelSamplingAuraFlow
 from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel, UpscaleModelLoader
 
+from .control import ChromaControl, aplicar_control
 from .etiquetas import ChromaEtiquetas
 
 NINGUNO = "Ninguno"
@@ -223,6 +224,7 @@ class ChromaMotor:
             "optional": {
                 "imagen_referencia": ("IMAGE",),
                 "info_loras": ("CHROMA_LORAS",),
+                "control": ("CHROMA_CONTROL", {"tooltip": "ControlNet (pose / profundidad / bordes)."}),
                 "mascara": ("MASK", {"tooltip": "Zona pintada para el modo Inpaint (salida MASK de Load Image)."}),
             },
         }
@@ -290,7 +292,7 @@ class ChromaMotor:
         m = torch.nn.functional.avg_pool2d(m, 2 * difuminar + 1, stride=1, padding=difuminar, count_include_pad=False)
         return m.clamp(0, 1)
 
-    def generar(self, model, clip, vae, ajustes, upscaler, imagen_referencia=None, info_loras=None, mascara=None):
+    def generar(self, model, clip, vae, ajustes, upscaler, imagen_referencia=None, info_loras=None, mascara=None, control=None):
         a = dict(ajustes)
         if info_loras:
             if info_loras["palabras"]:
@@ -308,6 +310,7 @@ class ChromaMotor:
         model = ModelSamplingAuraFlow().patch_aura(model, 1.0)[0]  # shift 1.0 = el del autor de Chroma
         positivo = self._codificar(clip, a["prompt"])
         negativo = self._codificar(clip, a["negativo"])
+        positivo, negativo = aplicar_control(control, positivo, negativo, vae)
 
         if a["referencia"]:
             if a.get("ultima"):
@@ -355,12 +358,14 @@ class ChromaMotor:
 NODE_CLASS_MAPPINGS = {
     "ChromaPanel": ChromaPanel,
     "ChromaEtiquetas": ChromaEtiquetas,
+    "ChromaControl": ChromaControl,
     "ChromaLoras": ChromaLoras,
     "ChromaMotor": ChromaMotor,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "ChromaPanel": "Panel Chroma",
     "ChromaEtiquetas": "Botones de prompt Chroma",
+    "ChromaControl": "ControlNet Chroma (pose / profundidad / bordes)",
     "ChromaLoras": "LoRAs Chroma",
     "ChromaMotor": "Motor Chroma",
 }

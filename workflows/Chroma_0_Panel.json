@@ -1,8 +1,8 @@
 {
   "id": "6b0c3c1e-6a43-4d5e-9a57-c4a7c1a0c0de",
   "revision": 0,
-  "last_node_id": 11,
-  "last_link_id": 11,
+  "last_node_id": 14,
+  "last_link_id": 14,
   "nodes": [
     {
       "id": 1,
@@ -45,7 +45,7 @@
       "type": "CLIPLoader",
       "pos": [
         460,
-        1340
+        1940
       ],
       "size": [
         380,
@@ -79,7 +79,7 @@
       "type": "VAELoader",
       "pos": [
         460,
-        1480
+        2080
       ],
       "size": [
         380,
@@ -291,7 +291,7 @@
       "type": "ChromaMotor",
       "pos": [
         880,
-        1340
+        1940
       ],
       "size": [
         400,
@@ -334,6 +334,12 @@
           "shape": 7
         },
         {
+          "name": "control",
+          "type": "CHROMA_CONTROL",
+          "link": 12,
+          "shape": 7
+        },
+        {
           "name": "mascara",
           "type": "MASK",
           "link": 9,
@@ -353,7 +359,7 @@
           "name": "prompt_final",
           "type": "STRING",
           "links": [
-            11
+            14
           ],
           "slot_index": 1
         }
@@ -414,7 +420,7 @@
       "title": "Guia rapida",
       "properties": {},
       "widgets_values": [
-        "## Como usarlo\n\n1. **BOTONES DE PROMPT** (azul): enciende lo que quieras ver. Escriben el ingles por ti.\n2. **PANEL DE CONTROL**: en *prompt* escribe solo lo extra (puede quedar vacio). Elige resolucion, semilla y escalado.\n3. **LoRAs**: enciende con el interruptor y ajusta la barra.\n4. Pulsa **Run**. Abajo a la derecha ves el *prompt final* en ingles.\n\n**Varias imagenes seguidas:** cambia el numero junto a **Run** (ej. 8).\n\n**Modelo:** en el nodo MODELO elige Chroma1-HD, UnCanny o GonzaLomo.\n- UnCanny: 30-40 pasos, CFG 3.5.\n- GonzaLomo: 8-14 pasos, CFG 1-1.3.\n\n**Quitar o cambiar ropa:** modo *Inpaint*. Clic derecho en la imagen de referencia > *Open in MaskEditor*, pinta la ropa, guarda. fuerza_referencia 1.0.\n\n**Modo rapido:** activa el LoRA *Flash* (pone CFG 1 y 12 pasos solo).\n"
+        "## Como usarlo\n\n1. **BOTONES DE PROMPT** (azul): enciende lo que quieras ver. Escriben el ingles por ti.\n2. **PANEL DE CONTROL**: en *prompt* escribe solo lo extra (puede quedar vacio). Elige resolucion, semilla y escalado.\n3. **LoRAs**: enciende con el interruptor y ajusta la barra.\n4. Pulsa **Run**. Abajo a la derecha ves el *prompt final* en ingles.\n\n**Varias imagenes seguidas:** cambia el numero junto a **Run** (ej. 8).\n\n**Modelo:** en el nodo MODELO elige Chroma1-HD, UnCanny o GonzaLomo.\n- UnCanny: 30-40 pasos, CFG 3.5.\n- GonzaLomo: 8-14 pasos, CFG 1-1.3.\n\n**Quitar o cambiar ropa:** modo *Inpaint*. Clic derecho en la imagen de referencia > *Open in MaskEditor*, pinta la ropa, guarda. fuerza_referencia 1.0.\n\n**ControlNet (azul, abajo):** sube una imagen guia, elige Pose / Profundidad / Bordes y activalo. Copia la postura o el angulo de camara de esa imagen.\n\n**Angulo de camara:** en Botones de prompt, menus *camara angulo* y *camara lente*.\n\n**Modo rapido:** activa el LoRA *Flash* (pone CFG 1 y 12 pasos solo).\n"
       ],
       "color": "#432",
       "bgcolor": "#653"
@@ -491,6 +497,8 @@
         "-",
         "amateur/movil",
         "-",
+        "-",
+        "-",
         false,
         false,
         false,
@@ -519,7 +527,7 @@
         {
           "name": "source",
           "type": "*",
-          "link": 11
+          "link": 14
         }
       ],
       "outputs": [
@@ -535,6 +543,128 @@
       },
       "widgets_values": [],
       "title": "Prompt final que recibio Chroma (en ingles)"
+    },
+    {
+      "id": 12,
+      "type": "LoadImage",
+      "pos": [
+        0,
+        1300
+      ],
+      "size": [
+        440,
+        520
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            11
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "chroma_referencia_ejemplo.png",
+        "image"
+      ],
+      "title": "Imagen guia para ControlNet (pose / forma)",
+      "color": "#335",
+      "bgcolor": "#446"
+    },
+    {
+      "id": 13,
+      "type": "ChromaControl",
+      "pos": [
+        460,
+        1300
+      ],
+      "size": [
+        520,
+        200
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "imagen_guia",
+          "type": "IMAGE",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "name": "control",
+          "type": "CHROMA_CONTROL",
+          "links": [
+            12
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "mapa",
+          "type": "IMAGE",
+          "links": [
+            13
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ChromaControl"
+      },
+      "widgets_values": [
+        false,
+        "Pose (copia la postura, manos y cara)",
+        0.7,
+        0.6
+      ],
+      "title": "CONTROLNET (copiar pose / profundidad / bordes)",
+      "color": "#335",
+      "bgcolor": "#446"
+    },
+    {
+      "id": 14,
+      "type": "PreviewImage",
+      "pos": [
+        1000,
+        1300
+      ],
+      "size": [
+        460,
+        520
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 13
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "Mapa de control (lo que ve ControlNet)"
     }
   ],
   "links": [
@@ -607,7 +737,7 @@
       5,
       1,
       7,
-      6,
+      7,
       "MASK"
     ],
     [
@@ -620,6 +750,30 @@
     ],
     [
       11,
+      12,
+      0,
+      13,
+      0,
+      "IMAGE"
+    ],
+    [
+      12,
+      13,
+      0,
+      7,
+      6,
+      "CHROMA_CONTROL"
+    ],
+    [
+      13,
+      13,
+      1,
+      14,
+      0,
+      "IMAGE"
+    ],
+    [
+      14,
       7,
       1,
       11,
@@ -635,7 +789,7 @@
         -20,
         -80,
         1920,
-        1340
+        1940
       ],
       "color": "#b58b2a",
       "font_size": 28,
@@ -646,7 +800,7 @@
       "title": "Motor (no hace falta tocar)",
       "bounding": [
         440,
-        1270,
+        1870,
         860,
         300
       ],

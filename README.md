@@ -16,6 +16,7 @@ Instalador de un clic que deja ComfyUI listo para generar imágenes con **Chroma
 | Panel Chroma (nodos propios) | `custom_nodes/ComfyUI-ChromaPanel` | Botones de prompt, panel de control, LoRAs con interruptor y barra, y un motor con escalado |
 | Upscaler | `4x_foolhardy_Remacri.safetensors` (67 MB) | Para el escalado x2 / x1.5 |
 | Pack de LoRAs | 12 LoRAs, unos 3,4 GB (`catalogo.json`) | Verificados con SHA256 |
+| RES4LYF + detector YOLO | commit `56e4475`, `ultralytics==8.4.178`, `face_yolov8m` / `hand_yolov8s` | Samplers y detallador de caras |
 | ControlNet (opcional) | Union Pro 2.0 + SDPose + Depth Anything 3 | ~7 GB, verificados con SHA256 |
 | Modelos alternativos (opcional) | UnCanny v1.3 fp8, GonzaLomo v3 fp8 | 8,5 GB cada uno |
 | Workflows | `Chroma_0_Panel` (recomendado), `Chroma_1_TextoAImagen`, `Chroma_2_ImagenReferencia` | Basados en la plantilla oficial de Chroma de ComfyUI |
@@ -98,7 +99,15 @@ Sube una **imagen guía**, elige el tipo y actívalo con el interruptor:
 
 **Ángulo de cámara sin ControlNet:** en los Botones de prompt están los menús **cámara ángulo** (picado, contrapicado, cenital, perfil, tres cuartos, desde atrás, POV, holandés) y **cámara lente** (gran angular, 50 mm, 85 mm, teleobjetivo).
 
-### 5. Modelo
+### 5. Herramientas de calidad
+| Nodo | Qué hace | Ajustes clave |
+|---|---|---|
+| **Detallador de caras y manos** | Detecta caras (y manos) con YOLO, las redibuja a 1024 px y las pega con borde suave. Es lo que hacen los workflows grandes con *FaceDetailer* | `fuerza` 0,3-0,45 mejora sin cambiar la identidad; manos apagado por defecto |
+| **Comparador** | Genera la **misma imagen** variando un ajuste y devuelve una cuadrícula con etiquetas | parámetro: cfg, pasos, sampler, scheduler, semilla o fuerza_referencia; valores separados por coma (`3, 4, 5`) |
+| **Retoque final** | Nitidez, grano de película, viñeta, saturación y temperatura de color, para quitar el aspecto "plástico" | Viene activado con valores suaves |
+| **RES4LYF** | Samplers `res_2s`, `res_3s`… y schedulers `bong_tangent`, `beta57` en el Panel | `res_2s` + `bong_tangent`: más detalle; cada paso tarda unas 2 veces más |
+
+### 6. Modelo
 El nodo **MODELO** permite elegir entre:
 - **Chroma1-HD**: el modelo oficial.
 - **UnCanny v1.3**: más fotorrealista; 30-40 pasos, CFG 3,5.

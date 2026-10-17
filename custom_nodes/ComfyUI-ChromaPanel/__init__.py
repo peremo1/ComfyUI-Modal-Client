@@ -28,6 +28,8 @@ from comfy_extras.nodes_upscale_model import ImageUpscaleWithModel, UpscaleModel
 
 from .control import ChromaControl, aplicar_control
 from .etiquetas import ChromaEtiquetas
+from .herramientas import (YOLO_CARA, YOLO_MANO, ChromaComparador, ChromaDetallador, ChromaRetoque,
+                           cuadricula, detallar, detectar)
 
 NINGUNO = "Ninguno"
 
@@ -225,6 +227,8 @@ class ChromaMotor:
                 "imagen_referencia": ("IMAGE",),
                 "info_loras": ("CHROMA_LORAS",),
                 "control": ("CHROMA_CONTROL", {"tooltip": "ControlNet (pose / profundidad / bordes)."}),
+                "detallador": ("CHROMA_DETALLE", {"tooltip": "Redibuja caras y manos."}),
+                "comparador": ("CHROMA_COMPARAR", {"tooltip": "Cuadricula comparando un ajuste."}),
                 "mascara": ("MASK", {"tooltip": "Zona pintada para el modo Inpaint (salida MASK de Load Image)."}),
             },
         }
@@ -292,7 +296,8 @@ class ChromaMotor:
         m = torch.nn.functional.avg_pool2d(m, 2 * difuminar + 1, stride=1, padding=difuminar, count_include_pad=False)
         return m.clamp(0, 1)
 
-    def generar(self, model, clip, vae, ajustes, upscaler, imagen_referencia=None, info_loras=None, mascara=None, control=None):
+    def generar(self, model, clip, vae, ajustes, upscaler, imagen_referencia=None, info_loras=None, mascara=None,
+                control=None, detallador=None, comparador=None):
         a = dict(ajustes)
         if info_loras:
             if info_loras["palabras"]:
@@ -308,9 +313,9 @@ class ChromaMotor:
             raise ValueError("Elegiste escalado pero el Motor Chroma no tiene 'upscaler'. Elige uno o pon escalado = No.")
 
         model = ModelSamplingAuraFlow().patch_aura(model, 1.0)[0]  # shift 1.0 = el del autor de Chroma
-        positivo = self._codificar(clip, a["prompt"])
-        negativo = self._codificar(clip, a["negativo"])
-        positivo, negativo = aplicar_control(control, positivo, negativo, vae)
+        pos_base = self._codificar(clip, a["prompt"])
+        neg_base = self._codificar(clip, a["negativo"])
+        positivo, negativo = aplicar_control(control, pos_base, neg_base, vae)
 
         if a["referencia"]:
             if a.get("ultima"):
@@ -318,47 +323,79 @@ class ChromaMotor:
             if imagen_referencia is None:
                 raise ValueError("Modo 'Imagen de referencia' pero no hay imagen conectada.")
             a["ancho"], a["alto"] = self._medidas_referencia(imagen_referencia, a["ancho"], a["alto"])
-            pix = self._redimensionar(imagen_referencia[:1], a["ancho"], a["alto"])
+            if a.get("inpaint") and (mascara is None or float(mascara.max()) <= 0):
+                raise ValueError("Modo Inpaint: pinta la zona a cambiar en Load Image (clic derecho > Open in MaskEditor).")
+
+        ctx = dict(model=model, vae=vae, upscaler=upscaler, positivo=positivo, negativo=negativo,
+                   pos_base=pos_base, neg_base=neg_base, referencia=imagen_referencia, mascara=mascara,
+                   detallador=detallador)
+        if not comparador or not comparador.get("activo"):
+            return (self._una_imagen(a, ctx), a["prompt"])
+
+        imagenes, etiquetas = [], []
+        for v in comparador["valores"]:
+            variante = dict(a, **{comparador["clave"]: v})
+            logging.info("[Chroma] Comparador: %s = %s", comparador["parametro"], v)
+            imagenes.append(self._una_imagen(variante, ctx))
+            etiquetas.append(f"{comparador['parametro']} = {v}")
+        return (cuadricula(imagenes, etiquetas), a["prompt"])
+
+    def _una_imagen(self, a, c):
+        model, vae = c["model"], c["vae"]
+
+        def muestrear(latente, pasos, denoise, positivo=None, negativo=None):
+            return nodes.common_ksampler(model, a["semilla"], pasos, a["cfg"], a["sampler"], a["scheduler"],
+                                         positivo or c["positivo"], negativo or c["negativo"], latente,
+                                         denoise=denoise)[0]
+
+        if a["referencia"]:
+            pix = self._redimensionar(c["referencia"][:1], a["ancho"], a["alto"])
             latente = {"samples": vae.encode(pix)}
             if a.get("inpaint"):
-                if mascara is None or float(mascara.max()) <= 0:
-                    raise ValueError("Modo Inpaint: pinta la zona a cambiar en Load Image (clic derecho > Open in MaskEditor).")
-                m = self._preparar_mascara(mascara, a["ancho"], a["alto"])
+                m = self._preparar_mascara(c["mascara"], a["ancho"], a["alto"])
                 latente["noise_mask"] = m
         else:
             latente = self._latente_vacio(a["ancho"], a["alto"])
 
-        latente = nodes.common_ksampler(model, a["semilla"], a["pasos"], a["cfg"], a["sampler"], a["scheduler"],
-                                        positivo, negativo, latente, denoise=a["denoise"])[0]
-        imagen = self._decodificar(vae, latente)
+        imagen = self._decodificar(vae, muestrear(latente, a["pasos"], a["denoise"]))
         if a.get("inpaint"):
             # fuera de la zona pintada se conserva la imagen original exacta
             mm = m.movedim(1, -1).to(imagen)
             imagen = pix.to(imagen) * (1 - mm) + imagen * mm
 
-        if a["escalado"] == ESCALADO_NO:
-            return (imagen, a["prompt"])
+        if a["escalado"] != ESCALADO_NO:
+            modelo_esc = UpscaleModelLoader.execute(c["upscaler"]).result[0]
+            grande = ImageUpscaleWithModel.execute(modelo_esc, imagen).result[0]
+            factor = 2.0 if a["escalado"] == ESCALADO_RAPIDO else 1.5
+            imagen = self._redimensionar(grande, _a_multiplo(a["ancho"] * factor), _a_multiplo(a["alto"] * factor))
+            if a["escalado"] == ESCALADO_DETALLE:
+                # 2a pasada: redibuja detalles finos sobre la imagen escalada
+                latente = muestrear({"samples": vae.encode(imagen)}, max(8, math.ceil(a["pasos"] * 0.6)), a["fuerza_detalle"])
+                imagen = self._decodificar(vae, latente)
 
-        modelo_esc = UpscaleModelLoader.execute(upscaler).result[0]
-        grande = ImageUpscaleWithModel.execute(modelo_esc, imagen).result[0]
-        factor = 2.0 if a["escalado"] == ESCALADO_RAPIDO else 1.5
-        ancho, alto = _a_multiplo(a["ancho"] * factor), _a_multiplo(a["alto"] * factor)
-        imagen = self._redimensionar(grande, ancho, alto)
+        d = c["detallador"]
+        if d and (d["caras"] or d["manos"]):
+            # caras y manos al final, sobre la imagen ya escalada; sin ControlNet (el mapa no corresponde al recorte)
+            pasos = max(10, math.ceil(a["pasos"] * 0.6))
 
-        if a["escalado"] == ESCALADO_DETALLE:
-            # 2a pasada: redibuja detalles finos sobre la imagen escalada
-            latente = {"samples": vae.encode(imagen)}
-            pasos = max(8, math.ceil(a["pasos"] * 0.6))
-            latente = nodes.common_ksampler(model, a["semilla"], pasos, a["cfg"], a["sampler"], a["scheduler"],
-                                            positivo, negativo, latente, denoise=a["fuerza_detalle"])[0]
-            imagen = self._decodificar(vae, latente)
-        return (imagen, a["prompt"])
+            def redibujar(recorte):
+                lat = muestrear({"samples": vae.encode(recorte)}, pasos, d["fuerza"], c["pos_base"], c["neg_base"])
+                return self._decodificar(vae, lat)
 
+            for activo, archivo, nombre in ((d["caras"], YOLO_CARA, "caras"), (d["manos"], YOLO_MANO, "manos")):
+                if activo:
+                    cajas = detectar(imagen, archivo, d["confianza"])
+                    logging.info("[Chroma] Detallador: %d %s", len(cajas), nombre)
+                    imagen = detallar(imagen, cajas, redibujar, d["lado"])
+        return imagen
 
 NODE_CLASS_MAPPINGS = {
     "ChromaPanel": ChromaPanel,
     "ChromaEtiquetas": ChromaEtiquetas,
     "ChromaControl": ChromaControl,
+    "ChromaDetallador": ChromaDetallador,
+    "ChromaComparador": ChromaComparador,
+    "ChromaRetoque": ChromaRetoque,
     "ChromaLoras": ChromaLoras,
     "ChromaMotor": ChromaMotor,
 }
@@ -366,6 +403,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "ChromaPanel": "Panel Chroma",
     "ChromaEtiquetas": "Botones de prompt Chroma",
     "ChromaControl": "ControlNet Chroma (pose / profundidad / bordes)",
+    "ChromaDetallador": "Detallador de caras y manos",
+    "ChromaComparador": "Comparador de ajustes (cuadricula)",
+    "ChromaRetoque": "Retoque final (nitidez, grano, color)",
     "ChromaLoras": "LoRAs Chroma",
     "ChromaMotor": "Motor Chroma",
 }

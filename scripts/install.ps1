@@ -21,6 +21,8 @@ $SevenZipUrl    = "https://www.7-zip.org/a/7zr.exe"
 $VcRedistUrl    = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
 $PyIncludeLibs  = "https://github.com/woct0rdho/triton-windows/releases/download/v3.0.0-windows.post1/python_3.13.2_include_libs.zip"
 $SageVersion    = "1.0.6"
+$Res4lyfCommit  = "56e44755d866c87ff9cb4b6608c8e42155db6ecc"   # RES4LYF (samplers res_2s, bong_tangent...)
+$UltralyticsVer = "8.4.178"                                    # detector de caras/manos
 $MinDriver      = 580   # el portable usa PyTorch cu130 -> driver NVIDIA 580 o superior
 
 $Models = @(
@@ -262,6 +264,30 @@ $nodeDst = Join-Path $Comfy "custom_nodes\ComfyUI-ChromaPanel"
 if (Test-Path $nodeDst) { Remove-Item $nodeDst -Recurse -Force }
 Copy-Item $nodeSrc $nodeDst -Recurse -Force
 Ok "instalados en ComfyUI\custom_nodes\ComfyUI-ChromaPanel"
+
+Step "RES4LYF (samplers de alta calidad) y detector de caras/manos"
+$resDst = Join-Path $Comfy "custom_nodes\RES4LYF"
+$resMarker = Join-Path $resDst ".commit_$Res4lyfCommit"
+if (Test-Path $resMarker) {
+    Ok "RES4LYF ya instalado"
+} else {
+    $zip = Join-Path $Downloads "RES4LYF_$Res4lyfCommit.zip"
+    Get-File "https://github.com/ClownsharkBatwing/RES4LYF/archive/$Res4lyfCommit.zip" $zip
+    $tmp = Join-Path $Downloads "res4lyf_tmp"
+    if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
+    Expand-Archive $zip -DestinationPath $tmp -Force
+    if (Test-Path $resDst) { Remove-Item $resDst -Recurse -Force }
+    Move-Item (Join-Path $tmp "RES4LYF-$Res4lyfCommit") $resDst
+    Remove-Item $tmp -Recurse -Force
+    New-Item $resMarker -ItemType File -Force | Out-Null
+    Ok "RES4LYF instalado (commit $($Res4lyfCommit.Substring(0,8)))"
+}
+if ((Pip install -r (Join-Path $resDst "requirements.txt")) -ne 0) { Warn "no se pudieron instalar las dependencias de RES4LYF" }
+if ((Pip install "ultralytics==$UltralyticsVer") -ne 0) { Warn "no se pudo instalar ultralytics: el detallador de caras no funcionara" }
+foreach ($e in $catalog.detectores) {
+    $dest = Join-Path $Comfy "models\ultralytics\bbox\$($e.archivo)"
+    if (-not (Get-Verified $e.urls $dest $e.sha256 $null)) { Warn "no se pudo bajar $($e.archivo)" }
+}
 
 Step "Workflows"
 $wfDir = Join-Path $Comfy "user\default\workflows"

@@ -1,8 +1,8 @@
 {
   "id": "6b0c3c1e-6a43-4d5e-9a57-c4a7c1a0c0de",
   "revision": 0,
-  "last_node_id": 14,
-  "last_link_id": 14,
+  "last_node_id": 17,
+  "last_link_id": 17,
   "nodes": [
     {
       "id": 1,
@@ -336,7 +336,19 @@
         {
           "name": "control",
           "type": "CHROMA_CONTROL",
+          "link": 15,
+          "shape": 7
+        },
+        {
+          "name": "detallador",
+          "type": "CHROMA_DETALLE",
           "link": 12,
+          "shape": 7
+        },
+        {
+          "name": "comparador",
+          "type": "CHROMA_COMPARAR",
+          "link": 13,
           "shape": 7
         },
         {
@@ -359,7 +371,7 @@
           "name": "prompt_final",
           "type": "STRING",
           "links": [
-            14
+            17
           ],
           "slot_index": 1
         }
@@ -389,7 +401,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 10
+          "link": 11
         }
       ],
       "outputs": [],
@@ -420,7 +432,7 @@
       "title": "Guia rapida",
       "properties": {},
       "widgets_values": [
-        "## Como usarlo\n\n1. **BOTONES DE PROMPT** (azul): enciende lo que quieras ver. Escriben el ingles por ti.\n2. **PANEL DE CONTROL**: en *prompt* escribe solo lo extra (puede quedar vacio). Elige resolucion, semilla y escalado.\n3. **LoRAs**: enciende con el interruptor y ajusta la barra.\n4. Pulsa **Run**. Abajo a la derecha ves el *prompt final* en ingles.\n\n**Varias imagenes seguidas:** cambia el numero junto a **Run** (ej. 8).\n\n**Modelo:** en el nodo MODELO elige Chroma1-HD, UnCanny o GonzaLomo.\n- UnCanny: 30-40 pasos, CFG 3.5.\n- GonzaLomo: 8-14 pasos, CFG 1-1.3.\n\n**Quitar o cambiar ropa:** modo *Inpaint*. Clic derecho en la imagen de referencia > *Open in MaskEditor*, pinta la ropa, guarda. fuerza_referencia 1.0.\n\n**ControlNet (azul, abajo):** sube una imagen guia, elige Pose / Profundidad / Bordes y activalo. Copia la postura o el angulo de camara de esa imagen.\n\n**Angulo de camara:** en Botones de prompt, menus *camara angulo* y *camara lente*.\n\n**Modo rapido:** activa el LoRA *Flash* (pone CFG 1 y 12 pasos solo).\n"
+        "## Como usarlo\n\n1. **BOTONES DE PROMPT** (azul): enciende lo que quieras ver. Escriben el ingles por ti.\n2. **PANEL DE CONTROL**: en *prompt* escribe solo lo extra (puede quedar vacio). Elige resolucion, semilla y escalado.\n3. **LoRAs**: enciende con el interruptor y ajusta la barra.\n4. Pulsa **Run**. Abajo a la derecha ves el *prompt final* en ingles.\n\n**Varias imagenes seguidas:** cambia el numero junto a **Run** (ej. 8).\n\n**Modelo:** en el nodo MODELO elige Chroma1-HD, UnCanny o GonzaLomo.\n- UnCanny: 30-40 pasos, CFG 3.5.\n- GonzaLomo: 8-14 pasos, CFG 1-1.3.\n\n**Quitar o cambiar ropa:** modo *Inpaint*. Clic derecho en la imagen de referencia > *Open in MaskEditor*, pinta la ropa, guarda. fuerza_referencia 1.0.\n\n**ControlNet (azul, abajo):** sube una imagen guia, elige Pose / Profundidad / Bordes y activalo. Copia la postura o el angulo de camara de esa imagen.\n\n**Angulo de camara:** en Botones de prompt, menus *camara angulo* y *camara lente*.\n\n**Calidad:** el DETALLADOR redibuja caras (y manos si lo activas). El RETOQUE da nitidez, grano y color de camara real. Sampler *res_2s* + scheduler *bong_tangent* = mas detalle (mas lento).\n\n**Probar ajustes:** activa el COMPARADOR, elige el ajuste (cfg, pasos, sampler...) y escribe valores separados por coma. Sale una cuadricula con la misma semilla.\n\n**Modo rapido:** activa el LoRA *Flash* (pone CFG 1 y 12 pasos solo).\n"
       ],
       "color": "#432",
       "bgcolor": "#653"
@@ -527,7 +539,7 @@
         {
           "name": "source",
           "type": "*",
-          "link": 14
+          "link": 17
         }
       ],
       "outputs": [
@@ -564,7 +576,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            11
+            14
           ],
           "slot_index": 0
         },
@@ -604,7 +616,7 @@
         {
           "name": "imagen_guia",
           "type": "IMAGE",
-          "link": 11
+          "link": 14
         }
       ],
       "outputs": [
@@ -612,7 +624,7 @@
           "name": "control",
           "type": "CHROMA_CONTROL",
           "links": [
-            12
+            15
           ],
           "slot_index": 0
         },
@@ -620,7 +632,7 @@
           "name": "mapa",
           "type": "IMAGE",
           "links": [
-            13
+            16
           ],
           "slot_index": 1
         }
@@ -656,7 +668,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 13
+          "link": 16
         }
       ],
       "outputs": [],
@@ -665,6 +677,128 @@
       },
       "widgets_values": [],
       "title": "Mapa de control (lo que ve ControlNet)"
+    },
+    {
+      "id": 15,
+      "type": "ChromaDetallador",
+      "pos": [
+        1480,
+        680
+      ],
+      "size": [
+        400,
+        210
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "detallador",
+          "type": "CHROMA_DETALLE",
+          "links": [
+            12
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ChromaDetallador"
+      },
+      "widgets_values": [
+        true,
+        false,
+        0.4,
+        0.35,
+        1024
+      ],
+      "title": "DETALLADOR de caras y manos",
+      "color": "#553",
+      "bgcolor": "#664"
+    },
+    {
+      "id": 16,
+      "type": "ChromaComparador",
+      "pos": [
+        1480,
+        920
+      ],
+      "size": [
+        400,
+        140
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "comparador",
+          "type": "CHROMA_COMPARAR",
+          "links": [
+            13
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ChromaComparador"
+      },
+      "widgets_values": [
+        false,
+        "cfg",
+        "3, 4, 5"
+      ],
+      "title": "COMPARADOR (cuadricula de pruebas)",
+      "color": "#553",
+      "bgcolor": "#664"
+    },
+    {
+      "id": 17,
+      "type": "ChromaRetoque",
+      "pos": [
+        1480,
+        1300
+      ],
+      "size": [
+        400,
+        280
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "imagen",
+          "type": "IMAGE",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            11
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ChromaRetoque"
+      },
+      "widgets_values": [
+        true,
+        0.3,
+        0.15,
+        0.1,
+        1.0,
+        0.0
+      ],
+      "title": "RETOQUE final (nitidez, grano, color)",
+      "color": "#335",
+      "bgcolor": "#446"
     }
   ],
   "links": [
@@ -737,19 +871,43 @@
       5,
       1,
       7,
-      7,
+      9,
       "MASK"
     ],
     [
       10,
       7,
       0,
-      8,
+      17,
       0,
       "IMAGE"
     ],
     [
       11,
+      17,
+      0,
+      8,
+      0,
+      "IMAGE"
+    ],
+    [
+      12,
+      15,
+      0,
+      7,
+      7,
+      "CHROMA_DETALLE"
+    ],
+    [
+      13,
+      16,
+      0,
+      7,
+      8,
+      "CHROMA_COMPARAR"
+    ],
+    [
+      14,
       12,
       0,
       13,
@@ -757,7 +915,7 @@
       "IMAGE"
     ],
     [
-      12,
+      15,
       13,
       0,
       7,
@@ -765,7 +923,7 @@
       "CHROMA_CONTROL"
     ],
     [
-      13,
+      16,
       13,
       1,
       14,
@@ -773,7 +931,7 @@
       "IMAGE"
     ],
     [
-      14,
+      17,
       7,
       1,
       11,

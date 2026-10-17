@@ -301,5 +301,21 @@
         "https://huggingface.co/Comfy-Org/Depth-Anything-3/resolve/main/geometry_estimation/depth_anything_3_mono_large.safetensors"
       ]
     }
+  ],
+  "detectores": [
+    {
+      "archivo": "face_yolov8m.pt",
+      "sha256": "717923c19b3f4bbf5250b728f1fa6b2cb72a33aed1d236ea9caf0e21ad943e5f",
+      "urls": [
+        "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt"
+      ]
+    },
+    {
+      "archivo": "hand_yolov8s.pt",
+      "sha256": "70b540063fbc385736d8258970744a4afbc4cbf7932134bae3b24cdadeadec06",
+      "urls": [
+        "https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov8s.pt"
+      ]
+    }
   ]
 }
